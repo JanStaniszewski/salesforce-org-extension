@@ -28,6 +28,35 @@
           "name": "Orgs"
         }
       ]
+    },
+    "commands": [
+      { "command": "sfOrgManager.authorizeOrg", "title": "Salesforce Org Manager: Authorize New Org", "icon": "$(add)" },
+      { "command": "sfOrgManager.refresh", "title": "Salesforce Org Manager: Refresh", "icon": "$(refresh)" },
+      { "command": "sfOrgManager.toggleGroupMode", "title": "Salesforce Org Manager: Toggle Group Mode", "icon": "$(list-tree)" },
+      { "command": "sfOrgManager.filterByCategory", "title": "Salesforce Org Manager: Filter by Category", "icon": "$(filter)" },
+      { "command": "sfOrgManager.clearCategoryFilter", "title": "Salesforce Org Manager: Clear Category Filter", "icon": "$(clear-all)" },
+      { "command": "sfOrgManager.setDefault", "title": "Salesforce Org Manager: Set as Default Org" },
+      { "command": "sfOrgManager.openInBrowser", "title": "Salesforce Org Manager: Open in Browser" },
+      { "command": "sfOrgManager.logout", "title": "Salesforce Org Manager: Logout" },
+      { "command": "sfOrgManager.refreshToken", "title": "Salesforce Org Manager: Refresh Token" },
+      { "command": "sfOrgManager.assignCategory", "title": "Salesforce Org Manager: Assign to Project/Category" },
+      { "command": "sfOrgManager.removeCategory", "title": "Salesforce Org Manager: Remove from Category" }
+    ],
+    "menus": {
+      "view/title": [
+        { "command": "sfOrgManager.authorizeOrg", "when": "view == sfOrgManagerView", "group": "navigation@1" },
+        { "command": "sfOrgManager.refresh", "when": "view == sfOrgManagerView", "group": "navigation@2" },
+        { "command": "sfOrgManager.toggleGroupMode", "when": "view == sfOrgManagerView", "group": "navigation@3" },
+        { "command": "sfOrgManager.filterByCategory", "when": "view == sfOrgManagerView", "group": "navigation@4" },
+        { "command": "sfOrgManager.clearCategoryFilter", "when": "view == sfOrgManagerView", "group": "navigation@5" }
+      ],
+      "view/item/context": [
+        { "command": "sfOrgManager.setDefault", "when": "view == sfOrgManagerView && viewItem == org" },
+        { "command": "sfOrgManager.openInBrowser", "when": "view == sfOrgManagerView && viewItem == org" },
+        { "command": "sfOrgManager.assignCategory", "when": "view == sfOrgManagerView && viewItem == org" },
+        { "command": "sfOrgManager.removeCategory", "when": "view == sfOrgManagerView && viewItem == org" },
+        { "command": "sfOrgManager.logout", "when": "view == sfOrgManagerView && viewItem == org" }
+      ]
     }
   },
   "scripts": {
