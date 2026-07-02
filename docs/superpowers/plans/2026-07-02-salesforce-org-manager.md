@@ -1381,6 +1381,39 @@ git add src/tree/orgTreeProvider.ts
 git commit -m "feat: add OrgTreeProvider with lazy detail loading and group/filter modes"
 ```
 
+- [ ] **Step 4 (robustness fix, added after code review): surface CLI errors from `getChildren` instead of failing silently**
+
+None of `getRootGroups`/`getOrgChildren` handle a rejection from `orgService.listOrgs()`/`getOrgDetails()`. If the CLI call fails (auth expired, `sf` not on PATH, network drop), the rejection propagates out of `getChildren()` uncaught, and VS Code's tree renderer just leaves the view silently blank with no indication why — unlike every write-side command (Task 13/14), which catches and calls `showErrorMessage`. Wrap `getChildren()`'s body in a try/catch:
+
+```typescript
+async getChildren(element?: TreeNode): Promise<TreeNode[]> {
+  try {
+    if (!element) {
+      return await this.getRootGroups();
+    }
+    if (element instanceof OrgGroupItem) {
+      return element.orgs.map((org) => new OrgItem(org));
+    }
+    if (element instanceof OrgItem) {
+      return await this.getOrgChildren(element.org);
+    }
+    return [];
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Nie udało się pobrać listy orgów: ${(error as Error).message}`);
+    return [];
+  }
+}
+```
+
+No other method changes. Run `npm run check-types` (clean, no new tests needed — this file has no unit tests, same reasoning as before) and commit separately:
+
+```bash
+git add src/tree/orgTreeProvider.ts
+git commit -m "fix: surface CLI errors from getChildren instead of failing silently"
+```
+
+> Scope note: this is a single error notification + empty array, not a "welcome view"/empty-state UI, retry logic, or per-node error placeholders — those are legitimate future improvements but out of scope here.
+
 ---
 
 ### Task 11: Extension activation & view registration
