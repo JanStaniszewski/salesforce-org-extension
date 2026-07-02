@@ -95,6 +95,37 @@ suite('OrgService', () => {
     assert.strictEqual(listCalls, 2, 'org list should be re-fetched after loginWeb');
   });
 
+  test('loginWeb rejects an alias containing shell metacharacters', async () => {
+    const execFn: ExecFn = (_command, _options, callback) => {
+      callback(null, JSON.stringify({ status: 0, result: {} }), '');
+    };
+    const service = new OrgService(execFn);
+
+    await assert.rejects(() => service.loginWeb('foo; rm -rf ~', 'https://login.salesforce.com'));
+  });
+
+  test('loginWeb rejects an instance URL containing shell metacharacters', async () => {
+    const execFn: ExecFn = (_command, _options, callback) => {
+      callback(null, JSON.stringify({ status: 0, result: {} }), '');
+    };
+    const service = new OrgService(execFn);
+
+    await assert.rejects(() => service.loginWeb('safealias', 'https://evil.com`rm -rf ~`'));
+  });
+
+  test('loginWeb accepts a normal alias and instance URL', async () => {
+    let called = false;
+    const execFn: ExecFn = (_command, _options, callback) => {
+      called = true;
+      callback(null, JSON.stringify({ status: 0, result: {} }), '');
+    };
+    const service = new OrgService(execFn);
+
+    await service.loginWeb('my-alias_1', 'https://mydomain.my.salesforce.com');
+
+    assert.strictEqual(called, true);
+  });
+
   test('logout invalidates both the org list and details cache', async () => {
     let detailCalls = 0;
     const execFn: ExecFn = (command, _options, callback) => {

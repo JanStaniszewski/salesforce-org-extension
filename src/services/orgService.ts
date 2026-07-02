@@ -2,6 +2,21 @@ import { runCli, runCliJson, ExecFn } from '../cli/cliRunner';
 import { parseOrgList, parseOrgDisplay, SfOrgListResult, SfOrgDisplayResult } from '../cli/sfCli';
 import { OrgSummary, OrgDetails } from '../models/org';
 
+const SAFE_ALIAS_PATTERN = /^[A-Za-z0-9_-]+$/;
+const SAFE_INSTANCE_URL_PATTERN = /^https:\/\/[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::\d+)?\/?$/;
+
+function assertSafeAlias(alias: string): void {
+  if (!SAFE_ALIAS_PATTERN.test(alias)) {
+    throw new Error('Nieprawidłowy alias — dozwolone są tylko litery, cyfry, myślnik i podkreślenik.');
+  }
+}
+
+function assertSafeInstanceUrl(instanceUrl: string): void {
+  if (!SAFE_INSTANCE_URL_PATTERN.test(instanceUrl)) {
+    throw new Error('Nieprawidłowy instance URL — dozwolony jest tylko host https (np. https://mydomain.my.salesforce.com).');
+  }
+}
+
 export class OrgService {
   private orgListCache: OrgSummary[] | undefined;
   private readonly detailsCache = new Map<string, OrgDetails>();
@@ -31,6 +46,10 @@ export class OrgService {
   }
 
   async loginWeb(alias: string | undefined, instanceUrl: string): Promise<void> {
+    if (alias) {
+      assertSafeAlias(alias);
+    }
+    assertSafeInstanceUrl(instanceUrl);
     const aliasFlag = alias ? ` --alias ${alias}` : '';
     await runCliJson(`sf org login web${aliasFlag} --instance-url ${instanceUrl} --json`, this.execFn);
     this.invalidateOrgList();
