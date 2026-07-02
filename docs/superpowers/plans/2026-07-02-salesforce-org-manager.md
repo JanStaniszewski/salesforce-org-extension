@@ -1755,6 +1755,45 @@ git add src/commands/categoryCommands.ts
 git commit -m "feat: add category assignment, removal, group-mode toggle and filter commands"
 ```
 
+- [ ] **Step 5 (bug fix, added after code review): normalize command arguments from context-menu invocation, and de-duplicate `groupMode` state**
+
+`OrgTreeProvider.getTreeItem(element) { return element; }` means the tree's data elements ARE the `vscode.TreeItem` instances (`OrgItem`, etc.). Task 15's `view/item/context` menu entries (below) invoke commands with that same data element as the argument — i.e. an `OrgItem` instance, not the plain `OrgSummary` these handlers were written for. Meanwhile `OrgActionItem` (Task 9) explicitly passes `command.arguments = [org]` (a plain `OrgSummary`) for the tree-child action rows. So the same command IDs (`setDefault`, `openInBrowser`) receive different argument shapes depending on whether they're invoked from an `OrgActionItem` row or the context menu — and `logout`/`assignCategory`/`removeCategory`, which have no `OrgActionItem` row at all, would *only* ever receive the wrong shape once the context menu below is wired, silently writing `"undefined"` into `categories.json` or showing `Na pewno wylogować "undefined"?`.
+
+Add a normalizer to `src/tree/treeItems.ts`, right after the `OrgItem` class:
+
+```typescript
+export function toOrgSummary(arg: OrgSummary | OrgItem): OrgSummary {
+  return arg instanceof OrgItem ? arg.org : arg;
+}
+```
+
+In `src/commands/orgActions.ts`, import `{ OrgItem, toOrgSummary }` from `../tree/treeItems`, and change each of `setDefault`/`openInBrowser`/`logout`/`refreshToken`'s callback signature from `(org: OrgSummary) =>` to `(arg: OrgSummary | OrgItem) =>` with `const org = toOrgSummary(arg);` as the first line. Same in `src/commands/categoryCommands.ts` for `assignCategory`/`removeCategory`.
+
+Separately: `categoryCommands.ts`'s local `let groupMode: GroupMode = 'type'` closure variable duplicates `OrgTreeProvider`'s own private `groupMode` field, staying in sync only by coincidence. Add a getter to `src/tree/orgTreeProvider.ts` right after `setGroupMode`:
+
+```typescript
+getGroupMode(): GroupMode {
+  return this.groupMode;
+}
+```
+
+And in `categoryCommands.ts`, remove the local `groupMode` variable and rewrite `toggleGroupMode`:
+
+```typescript
+context.subscriptions.push(
+  vscode.commands.registerCommand('sfOrgManager.toggleGroupMode', () => {
+    treeProvider.setGroupMode(treeProvider.getGroupMode() === 'type' ? 'category' : 'type');
+  })
+);
+```
+
+Run `npm run check-types` (clean), `npm run test:unit` (still 25 passing — no unit tests touch these files), `npm run compile` (clean), then commit all four touched files together as one fix:
+
+```bash
+git add src/tree/treeItems.ts src/tree/orgTreeProvider.ts src/commands/orgActions.ts src/commands/categoryCommands.ts
+git commit -m "fix: normalize command arguments from context-menu invocation and de-duplicate groupMode state"
+```
+
 ---
 
 ### Task 15: `package.json` contributes (commands, menus)
