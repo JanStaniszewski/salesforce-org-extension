@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import { OrgService } from '../services/orgService';
 import { OrgTreeProvider } from '../tree/orgTreeProvider';
 import { OrgSummary, OrgType } from '../models/org';
+import { OrgItem, toOrgSummary } from '../tree/treeItems';
 
 export function registerOrgActionCommands(
   context: vscode.ExtensionContext,
@@ -10,7 +11,8 @@ export function registerOrgActionCommands(
   treeProvider: OrgTreeProvider
 ): void {
   context.subscriptions.push(
-    vscode.commands.registerCommand('sfOrgManager.setDefault', async (org: OrgSummary) => {
+    vscode.commands.registerCommand('sfOrgManager.setDefault', async (arg: OrgSummary | OrgItem) => {
+      const org = toOrgSummary(arg);
       try {
         await orgService.setDefault(org.username);
         treeProvider.refresh();
@@ -22,7 +24,8 @@ export function registerOrgActionCommands(
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('sfOrgManager.openInBrowser', async (org: OrgSummary) => {
+    vscode.commands.registerCommand('sfOrgManager.openInBrowser', async (arg: OrgSummary | OrgItem) => {
+      const org = toOrgSummary(arg);
       try {
         await orgService.openInBrowser(org.username);
       } catch (error) {
@@ -32,7 +35,8 @@ export function registerOrgActionCommands(
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('sfOrgManager.logout', async (org: OrgSummary) => {
+    vscode.commands.registerCommand('sfOrgManager.logout', async (arg: OrgSummary | OrgItem) => {
+      const org = toOrgSummary(arg);
       const confirmed = await vscode.window.showWarningMessage(
         `Na pewno wylogować "${org.alias ?? org.username}"?`,
         { modal: true },
@@ -52,7 +56,8 @@ export function registerOrgActionCommands(
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('sfOrgManager.refreshToken', async (org: OrgSummary) => {
+    vscode.commands.registerCommand('sfOrgManager.refreshToken', async (arg: OrgSummary | OrgItem) => {
+      const org = toOrgSummary(arg);
       const instanceUrl = org.orgType === OrgType.Sandbox ? 'https://test.salesforce.com' : 'https://login.salesforce.com';
       try {
         await orgService.loginWeb(org.alias, instanceUrl);

@@ -24,6 +24,10 @@ export class OrgTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     this.refresh();
   }
 
+  getGroupMode(): GroupMode {
+    return this.groupMode;
+  }
+
   setCategoryFilter(category: string | undefined): void {
     this.categoryFilter = category;
     this.refresh();

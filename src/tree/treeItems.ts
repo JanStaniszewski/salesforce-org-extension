@@ -21,6 +21,10 @@ export class OrgItem extends vscode.TreeItem {
   }
 }
 
+export function toOrgSummary(arg: OrgSummary | OrgItem): OrgSummary {
+  return arg instanceof OrgItem ? arg.org : arg;
+}
+
 export class OrgDetailItem extends vscode.TreeItem {
   constructor(label: string, value: string) {
     super(`${label}: ${value}`, vscode.TreeItemCollapsibleState.None);
