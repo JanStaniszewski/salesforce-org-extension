@@ -1,0 +1,54 @@
+{
+  "name": "sf-org-manager",
+  "displayName": "Salesforce Org Manager",
+  "description": "Zarządzanie zautoryzowanymi orgami Salesforce z poziomu VS Code",
+  "version": "0.0.1",
+  "publisher": "local-dev",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sfOrgManager",
+          "title": "Salesforce Orgs",
+          "icon": "resources/org-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "sfOrgManager": [
+        {
+          "id": "sfOrgManagerView",
+          "name": "Orgs"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch": "node esbuild.js --watch",
+    "package": "npm run check-types && node esbuild.js --production",
+    "test:unit": "mocha",
+    "pretest:integration": "tsc -p ./test/tsconfig.json",
+    "test:integration": "npm run pretest:integration && node ./out/test/runTest.js",
+    "test": "npm run test:unit"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.9",
+    "esbuild": "^0.20.0",
+    "glob": "^10.3.10",
+    "mocha": "^10.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
