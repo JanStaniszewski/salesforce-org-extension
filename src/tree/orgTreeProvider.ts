@@ -38,16 +38,21 @@ export class OrgTreeProvider implements vscode.TreeDataProvider<TreeNode> {
   }
 
   async getChildren(element?: TreeNode): Promise<TreeNode[]> {
-    if (!element) {
-      return this.getRootGroups();
+    try {
+      if (!element) {
+        return await this.getRootGroups();
+      }
+      if (element instanceof OrgGroupItem) {
+        return element.orgs.map((org) => new OrgItem(org));
+      }
+      if (element instanceof OrgItem) {
+        return await this.getOrgChildren(element.org);
+      }
+      return [];
+    } catch (error) {
+      void vscode.window.showErrorMessage(`Nie udało się pobrać listy orgów: ${(error as Error).message}`);
+      return [];
     }
-    if (element instanceof OrgGroupItem) {
-      return element.orgs.map((org) => new OrgItem(org));
-    }
-    if (element instanceof OrgItem) {
-      return this.getOrgChildren(element.org);
-    }
-    return [];
   }
 
   private async getRootGroups(): Promise<OrgGroupItem[]> {
