@@ -818,6 +818,52 @@ git add src/services/orgService.ts test/unit/orgService.test.ts
 git commit -m "feat: add OrgService with cached org list/details and CLI-backed actions"
 ```
 
+- [ ] **Step 6 (security fix, added after code review): validate `alias`/`instanceUrl` before shell interpolation**
+
+`cliRunner` shells out via `child_process.exec` (`/bin/sh -c`), and `loginWeb` builds its command via raw string interpolation. Task 12's authorize-new-org flow feeds free-text `alias`/`instanceUrl` input-box values straight into `loginWeb`, which is a command injection vector (e.g. an alias of `foo; rm -rf ~`). `username` values are safe (always sourced from `sf org list --json`'s own output), but `alias`/`instanceUrl` are the one place free-form human input reaches a shell string — so add allowlist validation at this single choke point, which protects both Task 12's authorize flow and Task 13's refresh-token flow (both call `loginWeb`).
+
+Add above the `OrgService` class:
+
+```typescript
+const SAFE_ALIAS_PATTERN = /^[A-Za-z0-9_-]+$/;
+const SAFE_INSTANCE_URL_PATTERN = /^https:\/\/[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::\d+)?\/?$/;
+
+function assertSafeAlias(alias: string): void {
+  if (!SAFE_ALIAS_PATTERN.test(alias)) {
+    throw new Error('Nieprawidłowy alias — dozwolone są tylko litery, cyfry, myślnik i podkreślenik.');
+  }
+}
+
+function assertSafeInstanceUrl(instanceUrl: string): void {
+  if (!SAFE_INSTANCE_URL_PATTERN.test(instanceUrl)) {
+    throw new Error('Nieprawidłowy instance URL — dozwolony jest tylko host https (np. https://mydomain.my.salesforce.com).');
+  }
+}
+```
+
+And update `loginWeb` to validate before constructing the command:
+
+```typescript
+async loginWeb(alias: string | undefined, instanceUrl: string): Promise<void> {
+  if (alias) {
+    assertSafeAlias(alias);
+  }
+  assertSafeInstanceUrl(instanceUrl);
+  const aliasFlag = alias ? ` --alias ${alias}` : '';
+  await runCliJson(`sf org login web${aliasFlag} --instance-url ${instanceUrl} --json`, this.execFn);
+  this.invalidateOrgList();
+}
+```
+
+Add 3 tests to `test/unit/orgService.test.ts` (rejects a shell-metacharacter alias, rejects a shell-metacharacter instance URL, accepts a normal alias/instanceUrl pair) — full suite becomes 16 passing. Commit separately:
+
+```bash
+git add src/services/orgService.ts test/unit/orgService.test.ts
+git commit -m "fix: validate alias/instanceUrl before shell interpolation in loginWeb"
+```
+
+> **Why not rework `cliRunner` to `execFile`/argv-array instead?** That would eliminate this class of risk more thoroughly, but it would ripple through the already-built Tasks 3/4/5/8 and their tests. Since the actual attack surface is narrowly two free-text fields, a targeted allowlist at this one choke point is the proportionate fix. If a future task introduces another free-text value that reaches a CLI command, apply the same allowlist pattern there rather than assuming this fix covers it.
+
 ---
 
 ### Task 6: CategoryService
@@ -1464,6 +1510,8 @@ export function registerAuthorizeOrgCommand(
   context.subscriptions.push(disposable);
 }
 ```
+
+> Note: since Task 5's security fix, `orgService.loginWeb` validates `alias`/`instanceUrl` and throws on invalid input (e.g. shell metacharacters). The `catch` block above already forwards `(error as Error).message` to `showErrorMessage`, so a rejected alias/URL surfaces to the user as a normal error notification — no extra handling needed here.
 
 - [ ] **Step 2: Type-check**
 
