@@ -1884,11 +1884,14 @@ git commit -m "feat: contribute commands and menus for org actions and categoriz
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../out"
+    "outDir": "../out",
+    "rootDir": ".."
   },
   "include": ["../src/**/*", "./**/*"]
 }
 ```
+
+> Correction (found during implementation): the base `tsconfig.json` sets `rootDir: "src"`. Overriding only `outDir` here (as originally drafted) leaves that inherited `rootDir` in place, and `tsc` rejects every file under `test/` with `TS6059: File is not under rootDir`. Explicitly overriding `rootDir` to `".."` (the `test/tsconfig.json`'s parent, i.e. the project root) fixes this — confirmed by reproducing the exact `TS6059` error before the fix and a clean compile after.
 
 - [ ] **Step 2: Create `test/suite/index.ts`**
 
@@ -1960,7 +1963,7 @@ import { runTests } from '@vscode/test-electron';
 async function main() {
   try {
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
-    const extensionTestsPath = path.resolve(__dirname, '../out/test/suite/index');
+    const extensionTestsPath = path.resolve(__dirname, './suite/index');
     await runTests({ extensionDevelopmentPath, extensionTestsPath });
   } catch (err) {
     console.error('Failed to run integration tests', err);
@@ -1971,12 +1974,16 @@ async function main() {
 main();
 ```
 
+> Correction (found during implementation): with `rootDir: ".."` fixed above, this file compiles to `out/test/runTest.js`, so `extensionTestsPath` must resolve relative to its own compiled location (`./suite/index` → `out/test/suite/index`), not `../out/test/suite/index` (which would resolve to a nonexistent `out/out/test/suite/index`).
+
 > Note: this smoke test only verifies command registration — it does not require an authorized `sf` org, so it will still pass (and exercise the "CLI not installed" early-return path) even if `sf` isn't on the test machine's PATH, in which case it should be skipped/expected to fail at the `checkCliInstalled` gate. If `sf` is installed, activation proceeds normally and all commands register.
 
 - [ ] **Step 5: Run the integration test**
 
 Run: `npm run test:integration`
 Expected: Extension Development Host launches headlessly, PASS — 1 passing (`Extension activation`)
+
+> **Environment caveat (found during implementation):** `@vscode/test-electron` needs to download and launch a real VS Code/Electron binary with a usable GUI/display session. This will fail in headless CI-like sandboxes or agent execution environments that have no launchable display server, independent of whether the code is correct — confirmed by reproducing "bad option" / immediate-exit failures tied to the sandbox's lack of a GUI session, not to this task's files. Treat a failure here as inconclusive rather than a defect unless the error is clearly about a code/type/path problem (e.g. a real TypeScript compile error in the test files) rather than the Electron process failing to launch at all. Real confirmation that this test passes requires running it on a machine with a normal desktop session — do this as part of Task 17's manual verification pass.
 
 - [ ] **Step 6: Commit**
 
@@ -1998,6 +2005,8 @@ No files change in this task — it is a manual checklist to run once real `sf`-
 - [ ] **Step 5:** Use "Filter by Category" to narrow the view to one category, then "Clear Category Filter" to restore the full list.
 - [ ] **Step 6:** Right-click and "Logout" an org, confirm the modal warning, confirm the org disappears from the list after confirming.
 - [ ] **Step 7:** Compare the actual JSON shape from `sf org list --json` and `sf org display --target-org <alias> --json` run in a terminal against the `RawNonScratchOrg`/`RawScratchOrg`/`SfOrgDisplayResult` interfaces in `src/cli/sfCli.ts` (per the Task 4 note); adjust and re-run `npm run test:unit` if your CLI version's field names differ.
+- [ ] **Step 8:** Run `npm run test:integration` on this machine (a normal desktop session, not a headless sandbox) and confirm it actually passes — Task 16 could not get a conclusive result in the implementation sandbox (no launchable GUI/Electron session there), so this is the first real confirmation that the `@vscode/test-electron` smoke test works end-to-end.
+- [ ] **Step 9:** Right-click an org and try every context-menu action ("Set as Default Org", "Open in Browser", "Assign to Project/Category", "Remove from Category", "Logout") — this specifically exercises the Task 14 fix that normalizes command arguments so context-menu invocation (which passes the raw tree item) and the `OrgActionItem` tree-child rows (which pass a plain `OrgSummary`) both resolve correctly. Confirm none of them show "undefined" anywhere (e.g. the logout confirmation dialog, the assign-category quickpick placeholder).
 
 ---
 
