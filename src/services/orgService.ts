@@ -50,7 +50,7 @@ export class OrgService {
       `sf org auth show-sfdx-auth-url --target-org ${username} --json`,
       this.execFn
     );
-    if (!raw.sfdxAuthUrl || raw.sfdxAuthUrl.startsWith('[REDACTED]')) {
+    if (!raw.sfdxAuthUrl || !raw.sfdxAuthUrl.startsWith('force://')) {
       throw new Error('CLI nie zwróciło Auth URL dla tej orgi.');
     }
     return raw.sfdxAuthUrl;
