@@ -3,6 +3,7 @@
 .mocharc.json
 .worktrees/**
 docs/**
+resources/screenshots/**
 src/**
 test/**
 out/**
