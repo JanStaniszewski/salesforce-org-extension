@@ -40,11 +40,11 @@ export function runCliJson<T>(command: string, execFn: ExecFn = nodeExec as Exec
       try {
         parsed = JSON.parse(stdout);
       } catch {
-        reject(new CliError(stderr || error?.message || 'Nie udało się sparsować odpowiedzi CLI'));
+        reject(new CliError(stderr || error?.message || 'Failed to parse CLI response'));
         return;
       }
       if (parsed.status !== 0) {
-        reject(new CliError(parsed.message || 'Komenda CLI zakończyła się błędem', parsed));
+        reject(new CliError(parsed.message || 'CLI command failed', parsed));
         return;
       }
       resolve(parsed.result as T);

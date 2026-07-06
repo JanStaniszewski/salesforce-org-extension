@@ -12,7 +12,7 @@ export class OrgGroupItem extends vscode.TreeItem {
 export class OrgItem extends vscode.TreeItem {
   constructor(public readonly org: OrgSummary) {
     super(org.alias ?? org.username, vscode.TreeItemCollapsibleState.Collapsed);
-    this.description = `${org.username}${org.isDefault ? ' (domyślna)' : ''}`;
+    this.description = `${org.username}${org.isDefault ? ' (default)' : ''}`;
     this.contextValue = 'org';
     this.iconPath = new vscode.ThemeIcon(
       org.status === ConnectionStatus.Connected ? 'circle-filled' : 'warning',

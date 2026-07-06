@@ -16,9 +16,9 @@ export function registerOrgActionCommands(
       try {
         await orgService.setDefault(org.username);
         treeProvider.refresh();
-        void vscode.window.showInformationMessage(`"${org.alias ?? org.username}" ustawiona jako domyślna.`);
+        void vscode.window.showInformationMessage(`"${org.alias ?? org.username}" set as default.`);
       } catch (error) {
-        void vscode.window.showErrorMessage(`Nie udało się ustawić domyślnej orgi: ${(error as Error).message}`);
+        void vscode.window.showErrorMessage(`Failed to set default org: ${(error as Error).message}`);
       }
     })
   );
@@ -29,7 +29,7 @@ export function registerOrgActionCommands(
       try {
         await orgService.openInBrowser(org.username);
       } catch (error) {
-        void vscode.window.showErrorMessage(`Nie udało się otworzyć orgi: ${(error as Error).message}`);
+        void vscode.window.showErrorMessage(`Failed to open org: ${(error as Error).message}`);
       }
     })
   );
@@ -38,19 +38,19 @@ export function registerOrgActionCommands(
     vscode.commands.registerCommand('sfOrgManager.logout', async (arg: OrgSummary | OrgItem) => {
       const org = toOrgSummary(arg);
       const confirmed = await vscode.window.showWarningMessage(
-        `Na pewno wylogować "${org.alias ?? org.username}"?`,
+        `Are you sure you want to log out of "${org.alias ?? org.username}"?`,
         { modal: true },
-        'Wyloguj'
+        'Log Out'
       );
-      if (confirmed !== 'Wyloguj') {
+      if (confirmed !== 'Log Out') {
         return;
       }
       try {
         await orgService.logout(org.username);
         treeProvider.refresh();
-        void vscode.window.showInformationMessage(`Wylogowano z "${org.alias ?? org.username}".`);
+        void vscode.window.showInformationMessage(`Logged out of "${org.alias ?? org.username}".`);
       } catch (error) {
-        void vscode.window.showErrorMessage(`Wylogowanie nie powiodło się: ${(error as Error).message}`);
+        void vscode.window.showErrorMessage(`Logout failed: ${(error as Error).message}`);
       }
     })
   );
@@ -62,9 +62,9 @@ export function registerOrgActionCommands(
       try {
         await orgService.loginWeb(org.alias, instanceUrl);
         treeProvider.refresh();
-        void vscode.window.showInformationMessage(`Token odświeżony dla "${org.alias ?? org.username}".`);
+        void vscode.window.showInformationMessage(`Token refreshed for "${org.alias ?? org.username}".`);
       } catch (error) {
-        void vscode.window.showErrorMessage(`Odświeżenie tokena nie powiodło się: ${(error as Error).message}`);
+        void vscode.window.showErrorMessage(`Token refresh failed: ${(error as Error).message}`);
       }
     })
   );
@@ -76,10 +76,10 @@ export function registerOrgActionCommands(
         const authUrl = await orgService.getAuthUrl(org.username);
         await vscode.env.clipboard.writeText(authUrl);
         void vscode.window.showInformationMessage(
-          `Auth URL dla "${org.alias ?? org.username}" skopiowany do schowka. Traktuj go jak hasło.`
+          `Auth URL for "${org.alias ?? org.username}" copied to clipboard. Treat it like a password.`
         );
       } catch (error) {
-        void vscode.window.showErrorMessage(`Nie udało się skopiować Auth URL: ${(error as Error).message}`);
+        void vscode.window.showErrorMessage(`Failed to copy Auth URL: ${(error as Error).message}`);
       }
     })
   );

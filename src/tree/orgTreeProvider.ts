@@ -54,7 +54,7 @@ export class OrgTreeProvider implements vscode.TreeDataProvider<TreeNode> {
       }
       return [];
     } catch (error) {
-      void vscode.window.showErrorMessage(`Nie udało się pobrać listy orgów: ${(error as Error).message}`);
+      void vscode.window.showErrorMessage(`Failed to fetch org list: ${(error as Error).message}`);
       return [];
     }
   }
@@ -79,12 +79,12 @@ export class OrgTreeProvider implements vscode.TreeDataProvider<TreeNode> {
       new OrgDetailItem('API Version', details.apiVersion),
     ];
     if (details.expirationDate) {
-      items.push(new OrgDetailItem('Wygasa', details.expirationDate));
+      items.push(new OrgDetailItem('Expires', details.expirationDate));
     }
-    items.push(new OrgActionItem('Ustaw jako domyślną', 'arrow-swap', 'sfOrgManager.setDefault', org));
-    items.push(new OrgActionItem('Otwórz w przeglądarce', 'link-external', 'sfOrgManager.openInBrowser', org));
+    items.push(new OrgActionItem('Set as Default', 'arrow-swap', 'sfOrgManager.setDefault', org));
+    items.push(new OrgActionItem('Open in Browser', 'link-external', 'sfOrgManager.openInBrowser', org));
     if (org.status === ConnectionStatus.Expired) {
-      items.push(new OrgActionItem('Odśwież token', 'refresh', 'sfOrgManager.refreshToken', org));
+      items.push(new OrgActionItem('Refresh Token', 'refresh', 'sfOrgManager.refreshToken', org));
     }
     return items;
   }

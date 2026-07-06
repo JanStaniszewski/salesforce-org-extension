@@ -15,7 +15,7 @@ export function registerAuthorizeOrgCommand(
 ): void {
   const disposable = vscode.commands.registerCommand('sfOrgManager.authorizeOrg', async () => {
     const orgTypePick = await vscode.window.showQuickPick(['Production', 'Sandbox', 'Custom URL'], {
-      placeHolder: 'Wybierz typ orgi do autoryzacji',
+      placeHolder: 'Select the org type to authorize',
     });
     if (!orgTypePick) {
       return;
@@ -24,7 +24,7 @@ export function registerAuthorizeOrgCommand(
     let instanceUrl: string;
     if (orgTypePick === 'Custom URL') {
       const customUrl = await vscode.window.showInputBox({
-        prompt: 'Podaj instance URL (np. https://mydomain.my.salesforce.com)',
+        prompt: 'Enter the instance URL (e.g. https://mydomain.my.salesforce.com)',
       });
       if (!customUrl) {
         return;
@@ -35,22 +35,22 @@ export function registerAuthorizeOrgCommand(
     }
 
     const alias = await vscode.window.showInputBox({
-      prompt: 'Alias dla orgi (opcjonalnie, zostaw puste żeby CLI wygenerowało)',
+      prompt: 'Alias for the org (optional, leave blank to let the CLI generate one)',
     });
 
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Czekam na autoryzację w przeglądarce...',
+        title: 'Waiting for browser authorization...',
         cancellable: false,
       },
       async () => {
         try {
           await orgService.loginWeb(alias || undefined, instanceUrl);
           treeProvider.refresh();
-          void vscode.window.showInformationMessage(`Orga${alias ? ` "${alias}"` : ''} została zautoryzowana.`);
+          void vscode.window.showInformationMessage(`Org${alias ? ` "${alias}"` : ''} authorized successfully.`);
         } catch (error) {
-          void vscode.window.showErrorMessage(`Autoryzacja nie powiodła się: ${(error as Error).message}`);
+          void vscode.window.showErrorMessage(`Authorization failed: ${(error as Error).message}`);
         }
       }
     );

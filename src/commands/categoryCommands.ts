@@ -5,7 +5,7 @@ import { OrgTreeProvider } from '../tree/orgTreeProvider';
 import { OrgSummary } from '../models/org';
 import { OrgItem, toOrgSummary } from '../tree/treeItems';
 
-const CREATE_NEW_LABEL = '$(add) Utwórz nową...';
+const CREATE_NEW_LABEL = '$(add) Create new...';
 
 export function registerCategoryCommands(
   context: vscode.ExtensionContext,
@@ -17,14 +17,14 @@ export function registerCategoryCommands(
       const org = toOrgSummary(arg);
       const existing = categoryService.listCategories();
       const pick = await vscode.window.showQuickPick([CREATE_NEW_LABEL, ...existing], {
-        placeHolder: `Przypisz "${org.alias ?? org.username}" do projektu/kategorii`,
+        placeHolder: `Assign "${org.alias ?? org.username}" to a project/category`,
       });
       if (!pick) {
         return;
       }
       let category = pick;
       if (pick === CREATE_NEW_LABEL) {
-        const newCategory = await vscode.window.showInputBox({ prompt: 'Nazwa nowej kategorii/projektu' });
+        const newCategory = await vscode.window.showInputBox({ prompt: 'New category/project name' });
         if (!newCategory) {
           return;
         }
@@ -53,10 +53,10 @@ export function registerCategoryCommands(
     vscode.commands.registerCommand('sfOrgManager.filterByCategory', async () => {
       const existing = categoryService.listCategories();
       if (existing.length === 0) {
-        void vscode.window.showInformationMessage('Brak zdefiniowanych kategorii.');
+        void vscode.window.showInformationMessage('No categories defined yet.');
         return;
       }
-      const pick = await vscode.window.showQuickPick(existing, { placeHolder: 'Filtruj wg kategorii' });
+      const pick = await vscode.window.showQuickPick(existing, { placeHolder: 'Filter by category' });
       if (!pick) {
         return;
       }

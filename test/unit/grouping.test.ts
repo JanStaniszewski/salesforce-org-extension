@@ -24,28 +24,28 @@ suite('grouping', () => {
 
     assert.deepStrictEqual(
       groups.map((g) => g.groupName),
-      ['Dev Hubs', 'Sandboxes', 'Production / Inne']
+      ['Dev Hubs', 'Sandboxes', 'Production / Other']
     );
   });
 
   test('groupOrgsByCategory groups alphabetically with uncategorized last', () => {
     const orgs = [org({ username: 'a@x.com' }), org({ username: 'b@x.com' }), org({ username: 'c@x.com' })];
-    const categories: Record<string, string> = { 'a@x.com': 'ProjektB', 'b@x.com': 'ProjektA' };
+    const categories: Record<string, string> = { 'a@x.com': 'ProjectB', 'b@x.com': 'ProjectA' };
 
     const groups = groupOrgsByCategory(orgs, (u) => categories[u]);
 
     assert.deepStrictEqual(
       groups.map((g) => g.groupName),
-      ['ProjektA', 'ProjektB', 'Bez kategorii']
+      ['ProjectA', 'ProjectB', 'Uncategorized']
     );
     assert.strictEqual(groups[2].orgs[0].username, 'c@x.com');
   });
 
   test('filterByCategory keeps only orgs assigned to the given category', () => {
     const orgs = [org({ username: 'a@x.com' }), org({ username: 'b@x.com' })];
-    const categories: Record<string, string> = { 'a@x.com': 'ProjektA' };
+    const categories: Record<string, string> = { 'a@x.com': 'ProjectA' };
 
-    const filtered = filterByCategory(orgs, 'ProjektA', (u) => categories[u]);
+    const filtered = filterByCategory(orgs, 'ProjectA', (u) => categories[u]);
 
     assert.strictEqual(filtered.length, 1);
     assert.strictEqual(filtered[0].username, 'a@x.com');

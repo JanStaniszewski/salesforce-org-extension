@@ -11,7 +11,7 @@ const TYPE_GROUP_LABELS: Record<OrgType, string> = {
   [OrgType.DevHub]: 'Dev Hubs',
   [OrgType.Sandbox]: 'Sandboxes',
   [OrgType.Scratch]: 'Scratch Orgs',
-  [OrgType.Production]: 'Production / Inne',
+  [OrgType.Production]: 'Production / Other',
 };
 
 export function groupOrgsByType(orgs: OrgSummary[]): OrgGroup[] {
@@ -25,7 +25,7 @@ export function groupOrgsByType(orgs: OrgSummary[]): OrgGroup[] {
   return groups;
 }
 
-const UNCATEGORIZED_LABEL = 'Bez kategorii';
+const UNCATEGORIZED_LABEL = 'Uncategorized';
 
 export function groupOrgsByCategory(
   orgs: OrgSummary[],

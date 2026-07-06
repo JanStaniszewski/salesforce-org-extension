@@ -7,13 +7,13 @@ const SAFE_INSTANCE_URL_PATTERN = /^https:\/\/[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-
 
 function assertSafeAlias(alias: string): void {
   if (!SAFE_ALIAS_PATTERN.test(alias)) {
-    throw new Error('Nieprawidłowy alias — dozwolone są tylko litery, cyfry, myślnik i podkreślenik.');
+    throw new Error('Invalid alias — only letters, digits, hyphens, and underscores are allowed.');
   }
 }
 
 function assertSafeInstanceUrl(instanceUrl: string): void {
   if (!SAFE_INSTANCE_URL_PATTERN.test(instanceUrl)) {
-    throw new Error('Nieprawidłowy instance URL — dozwolony jest tylko host https (np. https://mydomain.my.salesforce.com).');
+    throw new Error('Invalid instance URL — only an https host is allowed (e.g. https://mydomain.my.salesforce.com).');
   }
 }
 
@@ -51,7 +51,7 @@ export class OrgService {
       this.execFn
     );
     if (!raw.sfdxAuthUrl || !raw.sfdxAuthUrl.startsWith('force://')) {
-      throw new Error('CLI nie zwróciło Auth URL dla tej orgi.');
+      throw new Error('The CLI did not return an Auth URL for this org.');
     }
     return raw.sfdxAuthUrl;
   }

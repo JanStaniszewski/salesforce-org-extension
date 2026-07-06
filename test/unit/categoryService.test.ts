@@ -22,15 +22,15 @@ suite('CategoryService', () => {
 
   test('assignCategory persists to disk and is readable by a new instance', () => {
     const service = new CategoryService(tempFile);
-    service.assignCategory('user@example.com', 'ProjektX');
+    service.assignCategory('user@example.com', 'ProjectX');
 
     const reloaded = new CategoryService(tempFile);
-    assert.strictEqual(reloaded.getCategory('user@example.com'), 'ProjektX');
+    assert.strictEqual(reloaded.getCategory('user@example.com'), 'ProjectX');
   });
 
   test('removeCategory clears the assignment', () => {
     const service = new CategoryService(tempFile);
-    service.assignCategory('user@example.com', 'ProjektX');
+    service.assignCategory('user@example.com', 'ProjectX');
     service.removeCategory('user@example.com');
 
     assert.strictEqual(service.getCategory('user@example.com'), undefined);
@@ -38,10 +38,10 @@ suite('CategoryService', () => {
 
   test('listCategories returns unique sorted category names', () => {
     const service = new CategoryService(tempFile);
-    service.assignCategory('a@example.com', 'ProjektB');
-    service.assignCategory('b@example.com', 'ProjektA');
-    service.assignCategory('c@example.com', 'ProjektB');
+    service.assignCategory('a@example.com', 'ProjectB');
+    service.assignCategory('b@example.com', 'ProjectA');
+    service.assignCategory('c@example.com', 'ProjectB');
 
-    assert.deepStrictEqual(service.listCategories(), ['ProjektA', 'ProjektB']);
+    assert.deepStrictEqual(service.listCategories(), ['ProjectA', 'ProjectB']);
   });
 });

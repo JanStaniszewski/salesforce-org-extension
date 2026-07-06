@@ -13,8 +13,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (!cliInstalled) {
     void vscode.window
       .showErrorMessage(
-        'Nie znaleziono Salesforce CLI ("sf"). Zainstaluj je, aby korzystać z Salesforce Org Manager.',
-        'Otwórz instrukcję instalacji'
+        'Salesforce CLI ("sf") not found. Install it to use Salesforce Org Manager.',
+        'Open installation instructions'
       )
       .then((choice) => {
         if (choice) {
