@@ -31,7 +31,7 @@ Click **➕** in the view's title bar, pick Production / Sandbox / Custom URL, o
 
 Tag orgs with your own project/category labels, then switch the whole tree between **grouping by type** and **grouping by category** with one click. Filter the tree down to a single category when you only want to see the orgs for the project you're currently working on.
 
-![Tree view grouped by category, filtered down to a single project](resources/screenshots/category-filter.png)
+![Tree view grouped by category instead of by type](resources/screenshots/category-filter.png)
 
 ### ⚡ Manage orgs from the right-click menu
 
