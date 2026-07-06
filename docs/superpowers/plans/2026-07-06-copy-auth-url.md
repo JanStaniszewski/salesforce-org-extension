@@ -177,6 +177,42 @@ git add src/cli/sfCli.ts src/services/orgService.ts test/unit/orgService.test.ts
 git commit -m "feat: add uncached OrgService.getAuthUrl for the SFDX auth URL"
 ```
 
+- [ ] **Step 8 (correction, found during Task 4 manual verification): use the dedicated `show-sfdx-auth-url` command**
+
+Manual testing against a real `sf` CLI (v2.139.6) found that `sf org display --verbose --json` **redacts** `sfdxAuthUrl` — it returns the literal string `"[REDACTED] Use 'sf org auth show-sfdx-auth-url' to view"` instead of the real value. Since that string is truthy, the original implementation above silently "succeeded" and copied the placeholder instead of erroring — worse than a thrown error, since it looks like success. The real value requires a separate, dedicated command: `sf org auth show-sfdx-auth-url --target-org <username> --json`, whose `--json` output is minimal — just `{ "status": 0, "result": { "sfdxAuthUrl": "force://..." } }` (no `id`/`apiVersion`/`instanceUrl`/`username` like `org display` has).
+
+In `src/cli/sfCli.ts`, replace `SfOrgDisplayVerboseResult extends SfOrgDisplayResult` with a standalone type (it's a different command with a different, narrower shape — not a superset of `org display`):
+
+```typescript
+export interface SfShowSfdxAuthUrlResult {
+  sfdxAuthUrl?: string;
+}
+```
+
+In `src/services/orgService.ts`, update the import (`SfOrgDisplayVerboseResult` → `SfShowSfdxAuthUrlResult`) and replace `getAuthUrl`'s body:
+
+```typescript
+  async getAuthUrl(username: string): Promise<string> {
+    const raw = await runCliJson<SfShowSfdxAuthUrlResult>(
+      `sf org auth show-sfdx-auth-url --target-org ${username} --json`,
+      this.execFn
+    );
+    if (!raw.sfdxAuthUrl || raw.sfdxAuthUrl.startsWith('[REDACTED]')) {
+      throw new Error('CLI nie zwróciło Auth URL dla tej orgi.');
+    }
+    return raw.sfdxAuthUrl;
+  }
+```
+
+Update the 3 tests in `test/unit/orgService.test.ts` to match the new command/minimal result shape, and add a 4th test asserting a `[REDACTED]`-prefixed value is rejected (full suite becomes 29 passing: 25 original + 4). Commit separately:
+
+```bash
+git add src/cli/sfCli.ts src/services/orgService.ts test/unit/orgService.test.ts
+git commit -m "fix: use the dedicated show-sfdx-auth-url command instead of org display --verbose"
+```
+
+> This is exactly the kind of live-CLI-shape assumption the design flagged as a risk (same category as Task 4/17's `sf org list`/`sf org display` field-name caveat in the main plan) — verified and corrected via real manual testing, not a hypothetical.
+
 ---
 
 ### Task 2: `copyAuthUrl` command

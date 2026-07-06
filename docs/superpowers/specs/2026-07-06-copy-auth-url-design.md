@@ -5,19 +5,21 @@
 
 ## Cel
 
-Dodać akcję pozwalającą skopiować do schowka "SFDX Auth URL" danej orgi — pełny refresh token w formacie `force://...`, zwracany przez `sf org display --target-org <username> --verbose --json` w polu `sfdxAuthUrl`. Ten string jest równoważny pełnemu poświadczeniu (pozwala zalogować się jako dana orga bez przeglądarki/MFA), więc jest traktowany jako sekret w całym projekcie.
+Dodać akcję pozwalającą skopiować do schowka "SFDX Auth URL" danej orgi — pełny refresh token w formacie `force://...`. Ten string jest równoważny pełnemu poświadczeniu (pozwala zalogować się jako dana orga bez przeglądarki/MFA), więc jest traktowany jako sekret w całym projekcie.
 
 ## OrgService: pobieranie Auth URL
+
+**Korekta (znaleziona podczas manualnej weryfikacji na żywym CLI 2.139.6):** pierwotny projekt zakładał `sf org display --verbose --json` jako źródło `sfdxAuthUrl`. W praktyce ta komenda **redaguje** to pole — zwraca literalny string `"[REDACTED] Use 'sf org auth show-sfdx-auth-url' to view"` zamiast prawdziwej wartości. Ponieważ ten string jest "prawdziwy" (truthy), pierwotna implementacja przechodziłaby walidację i cichо kopiowała bezużyteczny placeholder zamiast prawdziwego sekretu — gorzej niż rzucenie błędu, bo wygląda na sukces. Prawdziwa wartość jest dostępna wyłącznie przez dedykowaną komendę `sf org auth show-sfdx-auth-url --target-org <username> --json`, która zwraca zminimalizowany kształt `{ sfdxAuthUrl: "force://..." }` (bez `id`/`apiVersion`/`instanceUrl`/`username` jak `org display`).
 
 Nowa metoda w `src/services/orgService.ts`:
 
 ```typescript
 async getAuthUrl(username: string): Promise<string> {
-  const raw = await runCliJson<SfOrgDisplayVerboseResult>(
-    `sf org display --target-org ${username} --verbose --json`,
+  const raw = await runCliJson<SfShowSfdxAuthUrlResult>(
+    `sf org auth show-sfdx-auth-url --target-org ${username} --json`,
     this.execFn
   );
-  if (!raw.sfdxAuthUrl) {
+  if (!raw.sfdxAuthUrl || raw.sfdxAuthUrl.startsWith('[REDACTED]')) {
     throw new Error('CLI nie zwróciło Auth URL dla tej orgi.');
   }
   return raw.sfdxAuthUrl;
@@ -25,7 +27,8 @@ async getAuthUrl(username: string): Promise<string> {
 ```
 
 - **Brak cache'owania.** W przeciwieństwie do `getOrgDetails` (cache'owany `Map<string, OrgDetails>`), `getAuthUrl` woła CLI na świeżo przy każdym wywołaniu — sekret nie powinien siedzieć w pamięci `OrgService` dłużej niż to konieczne do jednorazowego skopiowania.
-- `src/cli/sfCli.ts` zyskuje nowy eksportowany typ `SfOrgDisplayVerboseResult extends SfOrgDisplayResult { sfdxAuthUrl?: string }` — pole opcjonalne, bo `--verbose` teoretycznie może go nie zwrócić (np. inny sposób autoryzacji, starsza wersja CLI).
+- `src/cli/sfCli.ts` zyskuje samodzielny (nie dziedziczący z `SfOrgDisplayResult`, bo to inna komenda o innym kształcie) eksportowany typ `SfShowSfdxAuthUrlResult { sfdxAuthUrl?: string }`.
+- Dodatkowa obrona: sprawdzamy też czy wartość nie zaczyna się od `[REDACTED]` — tania asekuracja na wypadek, gdyby ta redakcja kiedyś przeciekła przez inną ścieżkę.
 - `username` pochodzi zawsze z `sf org list --json` (jak w pozostałych metodach `OrgService`) — nie jest wolnym tekstem, więc nie wymaga walidacji jak `alias`/`instanceUrl` w `loginWeb`.
 
 ## Komenda: `sfOrgManager.copyAuthUrl`
@@ -66,8 +69,9 @@ Nowa pozycja w `contributes.commands`:
 ## Testy
 
 Unit test dla `OrgService.getAuthUrl` (ten sam wzorzec DI co reszta `orgService.test.ts`):
-- zwraca `sfdxAuthUrl` z odpowiedzi CLI przy poprawnym JSON-ie,
+- zwraca `sfdxAuthUrl` z odpowiedzi dedykowanej komendy przy poprawnym JSON-ie,
 - rzuca błąd, gdy `sfdxAuthUrl` jest nieobecne w odpowiedzi,
+- rzuca błąd, gdy CLI zwraca zredagowany placeholder (`[REDACTED]...`) zamiast prawdziwej wartości,
 - **nie cache'uje** — dwa kolejne wywołania `getAuthUrl` dla tego samego username powinny wywołać CLI dwa razy (w przeciwieństwie do `getOrgDetails`).
 
 Komenda `copyAuthUrl` w `orgActions.ts` nie ma dedykowanego unit testu (podobnie jak pozostałe komendy — zależą od `vscode` API, pokryte tylko przez manualną weryfikację i istniejący integration smoke test, który już sprawdza rejestrację wszystkich komend — lista oczekiwanych komend w `test/suite/extension.test.ts` zyskuje `sfOrgManager.copyAuthUrl`).
