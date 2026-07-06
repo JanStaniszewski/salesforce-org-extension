@@ -47,18 +47,18 @@
       ]
     },
     "commands": [
-      { "command": "sfOrgManager.authorizeOrg", "title": "Salesforce Org Manager: Authorize New Org", "icon": "$(add)" },
-      { "command": "sfOrgManager.refresh", "title": "Salesforce Org Manager: Refresh", "icon": "$(refresh)" },
-      { "command": "sfOrgManager.toggleGroupMode", "title": "Salesforce Org Manager: Toggle Group Mode", "icon": "$(list-tree)" },
-      { "command": "sfOrgManager.filterByCategory", "title": "Salesforce Org Manager: Filter by Category", "icon": "$(filter)" },
-      { "command": "sfOrgManager.clearCategoryFilter", "title": "Salesforce Org Manager: Clear Category Filter", "icon": "$(clear-all)" },
-      { "command": "sfOrgManager.setDefault", "title": "Salesforce Org Manager: Set as Default Org" },
-      { "command": "sfOrgManager.openInBrowser", "title": "Salesforce Org Manager: Open in Browser" },
-      { "command": "sfOrgManager.logout", "title": "Salesforce Org Manager: Logout" },
-      { "command": "sfOrgManager.refreshToken", "title": "Salesforce Org Manager: Refresh Token" },
-      { "command": "sfOrgManager.copyAuthUrl", "title": "Salesforce Org Manager: Copy Auth URL" },
-      { "command": "sfOrgManager.assignCategory", "title": "Salesforce Org Manager: Assign to Project/Category" },
-      { "command": "sfOrgManager.removeCategory", "title": "Salesforce Org Manager: Remove from Category" }
+      { "command": "sfOrgManager.authorizeOrg", "title": "Authorize New Org", "category": "Salesforce Org Manager", "icon": "$(add)" },
+      { "command": "sfOrgManager.refresh", "title": "Refresh", "category": "Salesforce Org Manager", "icon": "$(refresh)" },
+      { "command": "sfOrgManager.toggleGroupMode", "title": "Toggle Group Mode", "category": "Salesforce Org Manager", "icon": "$(list-tree)" },
+      { "command": "sfOrgManager.filterByCategory", "title": "Filter by Category", "category": "Salesforce Org Manager", "icon": "$(filter)" },
+      { "command": "sfOrgManager.clearCategoryFilter", "title": "Clear Category Filter", "category": "Salesforce Org Manager", "icon": "$(clear-all)" },
+      { "command": "sfOrgManager.setDefault", "title": "Set as Default Org", "category": "Salesforce Org Manager" },
+      { "command": "sfOrgManager.openInBrowser", "title": "Open in Browser", "category": "Salesforce Org Manager" },
+      { "command": "sfOrgManager.logout", "title": "Logout", "category": "Salesforce Org Manager" },
+      { "command": "sfOrgManager.refreshToken", "title": "Refresh Token", "category": "Salesforce Org Manager" },
+      { "command": "sfOrgManager.copyAuthUrl", "title": "Copy Auth URL", "category": "Salesforce Org Manager" },
+      { "command": "sfOrgManager.assignCategory", "title": "Assign to Project/Category", "category": "Salesforce Org Manager" },
+      { "command": "sfOrgManager.removeCategory", "title": "Remove from Category", "category": "Salesforce Org Manager" }
     ],
     "menus": {
       "view/title": [
