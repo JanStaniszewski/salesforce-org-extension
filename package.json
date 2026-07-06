@@ -43,6 +43,7 @@
       { "command": "sfOrgManager.openInBrowser", "title": "Salesforce Org Manager: Open in Browser" },
       { "command": "sfOrgManager.logout", "title": "Salesforce Org Manager: Logout" },
       { "command": "sfOrgManager.refreshToken", "title": "Salesforce Org Manager: Refresh Token" },
+      { "command": "sfOrgManager.copyAuthUrl", "title": "Salesforce Org Manager: Copy Auth URL" },
       { "command": "sfOrgManager.assignCategory", "title": "Salesforce Org Manager: Assign to Project/Category" },
       { "command": "sfOrgManager.removeCategory", "title": "Salesforce Org Manager: Remove from Category" }
     ],
@@ -59,7 +60,8 @@
         { "command": "sfOrgManager.openInBrowser", "when": "view == sfOrgManagerView && viewItem == org" },
         { "command": "sfOrgManager.assignCategory", "when": "view == sfOrgManagerView && viewItem == org" },
         { "command": "sfOrgManager.removeCategory", "when": "view == sfOrgManagerView && viewItem == org" },
-        { "command": "sfOrgManager.logout", "when": "view == sfOrgManagerView && viewItem == org" }
+        { "command": "sfOrgManager.logout", "when": "view == sfOrgManagerView && viewItem == org" },
+        { "command": "sfOrgManager.copyAuthUrl", "when": "view == sfOrgManagerView && viewItem == org" }
       ]
     }
   },

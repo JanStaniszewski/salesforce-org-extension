@@ -23,6 +23,7 @@ suite('Extension activation', () => {
       'sfOrgManager.openInBrowser',
       'sfOrgManager.logout',
       'sfOrgManager.refreshToken',
+      'sfOrgManager.copyAuthUrl',
       'sfOrgManager.assignCategory',
       'sfOrgManager.removeCategory',
     ];
