@@ -3,7 +3,8 @@
   "displayName": "Salesforce Org Manager",
   "description": "Zarządzanie zautoryzowanymi orgami Salesforce z poziomu VS Code",
   "version": "0.0.1",
-  "publisher": "local-dev",
+  "publisher": "JanStaniszewski",
+  "license": "MIT",
   "private": true,
   "repository": {
     "type": "git",
