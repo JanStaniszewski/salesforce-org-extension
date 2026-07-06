@@ -70,6 +70,21 @@ export function registerOrgActionCommands(
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('sfOrgManager.copyAuthUrl', async (arg: OrgSummary | OrgItem) => {
+      const org = toOrgSummary(arg);
+      try {
+        const authUrl = await orgService.getAuthUrl(org.username);
+        await vscode.env.clipboard.writeText(authUrl);
+        void vscode.window.showInformationMessage(
+          `Auth URL dla "${org.alias ?? org.username}" skopiowany do schowka. Traktuj go jak hasło.`
+        );
+      } catch (error) {
+        void vscode.window.showErrorMessage(`Nie udało się skopiować Auth URL: ${(error as Error).message}`);
+      }
+    })
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand('sfOrgManager.refresh', () => {
       orgService.invalidateOrgList();
       treeProvider.refresh();
