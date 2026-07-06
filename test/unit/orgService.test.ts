@@ -155,7 +155,7 @@ suite('OrgService', () => {
     assert.strictEqual(detailCalls, 2, 'details should be re-fetched after logout clears the cache');
   });
 
-  test('getAuthUrl returns the sfdxAuthUrl from a verbose org display call', async () => {
+  test('getAuthUrl returns the sfdxAuthUrl from the dedicated show-sfdx-auth-url command', async () => {
     const commands: string[] = [];
     const execFn: ExecFn = (command, _options, callback) => {
       commands.push(command);
@@ -164,10 +164,6 @@ suite('OrgService', () => {
         JSON.stringify({
           status: 0,
           result: {
-            id: 'x',
-            apiVersion: '61.0',
-            instanceUrl: 'https://myorg.my.salesforce.com',
-            username: 'user@example.com',
             sfdxAuthUrl: 'force://PlatformCLI::refreshtoken@myorg.my.salesforce.com',
           },
         }),
@@ -179,20 +175,26 @@ suite('OrgService', () => {
     const authUrl = await service.getAuthUrl('user@example.com');
 
     assert.strictEqual(authUrl, 'force://PlatformCLI::refreshtoken@myorg.my.salesforce.com');
-    assert.ok(commands[0].includes('--verbose'), 'command should request verbose output');
+    assert.ok(commands[0].includes('org auth show-sfdx-auth-url'), 'should call the dedicated auth-url command');
   });
 
   test('getAuthUrl throws when the CLI response has no sfdxAuthUrl', async () => {
+    const execFn: ExecFn = (_command, _options, callback) => {
+      callback(null, JSON.stringify({ status: 0, result: {} }), '');
+    };
+    const service = new OrgService(execFn);
+
+    await assert.rejects(() => service.getAuthUrl('user@example.com'));
+  });
+
+  test('getAuthUrl throws when the CLI redacts the auth URL instead of returning it', async () => {
     const execFn: ExecFn = (_command, _options, callback) => {
       callback(
         null,
         JSON.stringify({
           status: 0,
           result: {
-            id: 'x',
-            apiVersion: '61.0',
-            instanceUrl: 'https://myorg.my.salesforce.com',
-            username: 'user@example.com',
+            sfdxAuthUrl: "[REDACTED] Use 'sf org auth show-sfdx-auth-url' to view",
           },
         }),
         ''
@@ -212,10 +214,6 @@ suite('OrgService', () => {
         JSON.stringify({
           status: 0,
           result: {
-            id: 'x',
-            apiVersion: '61.0',
-            instanceUrl: 'https://myorg.my.salesforce.com',
-            username: 'user@example.com',
             sfdxAuthUrl: 'force://PlatformCLI::refreshtoken@myorg.my.salesforce.com',
           },
         }),

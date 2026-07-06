@@ -1,5 +1,5 @@
 import { runCli, runCliJson, ExecFn } from '../cli/cliRunner';
-import { parseOrgList, parseOrgDisplay, SfOrgListResult, SfOrgDisplayResult, SfOrgDisplayVerboseResult } from '../cli/sfCli';
+import { parseOrgList, parseOrgDisplay, SfOrgListResult, SfOrgDisplayResult, SfShowSfdxAuthUrlResult } from '../cli/sfCli';
 import { OrgSummary, OrgDetails } from '../models/org';
 
 const SAFE_ALIAS_PATTERN = /^[A-Za-z0-9_-]+$/;
@@ -46,11 +46,11 @@ export class OrgService {
   }
 
   async getAuthUrl(username: string): Promise<string> {
-    const raw = await runCliJson<SfOrgDisplayVerboseResult>(
-      `sf org display --target-org ${username} --verbose --json`,
+    const raw = await runCliJson<SfShowSfdxAuthUrlResult>(
+      `sf org auth show-sfdx-auth-url --target-org ${username} --json`,
       this.execFn
     );
-    if (!raw.sfdxAuthUrl) {
+    if (!raw.sfdxAuthUrl || raw.sfdxAuthUrl.startsWith('[REDACTED]')) {
       throw new Error('CLI nie zwróciło Auth URL dla tej orgi.');
     }
     return raw.sfdxAuthUrl;

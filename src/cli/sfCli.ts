@@ -30,7 +30,7 @@ export interface SfOrgDisplayResult {
   expirationDate?: string;
 }
 
-export interface SfOrgDisplayVerboseResult extends SfOrgDisplayResult {
+export interface SfShowSfdxAuthUrlResult {
   sfdxAuthUrl?: string;
 }
 
