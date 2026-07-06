@@ -2,7 +2,7 @@
 
 Manage every Salesforce org you've authorized with the `sf` CLI — right from a dedicated view in VS Code's Activity Bar. Browse, authorize, categorize, and act on your orgs without ever leaving the editor or memorizing CLI flags.
 
-<!-- SCREENSHOT: hero shot of the "Salesforce Orgs" Activity Bar view, tree expanded showing Dev Hubs / Sandboxes / Production groups with an org expanded to show its actions -->
+![Salesforce Org Manager tree view, grouped by type with an org expanded](resources/screenshots/hero.png)
 
 ## ✨ Features
 
@@ -17,11 +17,11 @@ Every org you've authorized via `sf org login web` shows up automatically, group
 
 A status dot next to each org shows at a glance whether it's connected 🟢 or needs re-authentication 🔴.
 
-<!-- SCREENSHOT: tree view grouped by type, showing green/red status icons -->
+![Tree view grouped by type, showing connected (green) and expired (red) status dots](resources/screenshots/status-dots.png)
 
 Expand any org to see its details — Org ID, Instance URL, API version, expiration date for scratch orgs — plus quick actions, no `sf org display` required.
 
-<!-- SCREENSHOT: an expanded org node showing detail rows and action rows -->
+![An expanded org node showing its detail rows and quick-action rows](resources/screenshots/org-details.png)
 
 ### 🔑 Authorize new orgs without touching the terminal
 
@@ -31,11 +31,13 @@ Click **➕** in the view's title bar, pick Production / Sandbox / Custom URL, o
 
 Tag orgs with your own project/category labels, then switch the whole tree between **grouping by type** and **grouping by category** with one click. Filter the tree down to a single category when you only want to see the orgs for the project you're currently working on.
 
-<!-- SCREENSHOT: tree view grouped by category, with the filter applied -->
+![Tree view grouped by category, filtered down to a single project](resources/screenshots/category-filter.png)
 
 ### ⚡ Manage orgs from the right-click menu
 
 Right-click any org for the full set of actions:
+
+![Right-click context menu open on an org, showing all available actions](resources/screenshots/context-menu.png)
 
 | Action | What it does |
 | --- | --- |
