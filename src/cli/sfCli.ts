@@ -30,6 +30,10 @@ export interface SfOrgDisplayResult {
   expirationDate?: string;
 }
 
+export interface SfOrgDisplayVerboseResult extends SfOrgDisplayResult {
+  sfdxAuthUrl?: string;
+}
+
 function classifyStatus(raw: string): ConnectionStatus {
   if (raw === 'Connected' || raw === 'Active') {
     return ConnectionStatus.Connected;

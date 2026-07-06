@@ -154,4 +154,79 @@ suite('OrgService', () => {
 
     assert.strictEqual(detailCalls, 2, 'details should be re-fetched after logout clears the cache');
   });
+
+  test('getAuthUrl returns the sfdxAuthUrl from a verbose org display call', async () => {
+    const commands: string[] = [];
+    const execFn: ExecFn = (command, _options, callback) => {
+      commands.push(command);
+      callback(
+        null,
+        JSON.stringify({
+          status: 0,
+          result: {
+            id: 'x',
+            apiVersion: '61.0',
+            instanceUrl: 'https://myorg.my.salesforce.com',
+            username: 'user@example.com',
+            sfdxAuthUrl: 'force://PlatformCLI::refreshtoken@myorg.my.salesforce.com',
+          },
+        }),
+        ''
+      );
+    };
+    const service = new OrgService(execFn);
+
+    const authUrl = await service.getAuthUrl('user@example.com');
+
+    assert.strictEqual(authUrl, 'force://PlatformCLI::refreshtoken@myorg.my.salesforce.com');
+    assert.ok(commands[0].includes('--verbose'), 'command should request verbose output');
+  });
+
+  test('getAuthUrl throws when the CLI response has no sfdxAuthUrl', async () => {
+    const execFn: ExecFn = (_command, _options, callback) => {
+      callback(
+        null,
+        JSON.stringify({
+          status: 0,
+          result: {
+            id: 'x',
+            apiVersion: '61.0',
+            instanceUrl: 'https://myorg.my.salesforce.com',
+            username: 'user@example.com',
+          },
+        }),
+        ''
+      );
+    };
+    const service = new OrgService(execFn);
+
+    await assert.rejects(() => service.getAuthUrl('user@example.com'));
+  });
+
+  test('getAuthUrl never caches - two calls invoke the CLI twice', async () => {
+    let callCount = 0;
+    const execFn: ExecFn = (_command, _options, callback) => {
+      callCount++;
+      callback(
+        null,
+        JSON.stringify({
+          status: 0,
+          result: {
+            id: 'x',
+            apiVersion: '61.0',
+            instanceUrl: 'https://myorg.my.salesforce.com',
+            username: 'user@example.com',
+            sfdxAuthUrl: 'force://PlatformCLI::refreshtoken@myorg.my.salesforce.com',
+          },
+        }),
+        ''
+      );
+    };
+    const service = new OrgService(execFn);
+
+    await service.getAuthUrl('user@example.com');
+    await service.getAuthUrl('user@example.com');
+
+    assert.strictEqual(callCount, 2, 'getAuthUrl should never cache — it should call the CLI every time');
+  });
 });

@@ -1,5 +1,5 @@
 import { runCli, runCliJson, ExecFn } from '../cli/cliRunner';
-import { parseOrgList, parseOrgDisplay, SfOrgListResult, SfOrgDisplayResult } from '../cli/sfCli';
+import { parseOrgList, parseOrgDisplay, SfOrgListResult, SfOrgDisplayResult, SfOrgDisplayVerboseResult } from '../cli/sfCli';
 import { OrgSummary, OrgDetails } from '../models/org';
 
 const SAFE_ALIAS_PATTERN = /^[A-Za-z0-9_-]+$/;
@@ -43,6 +43,17 @@ export class OrgService {
     const details = parseOrgDisplay(raw);
     this.detailsCache.set(username, details);
     return details;
+  }
+
+  async getAuthUrl(username: string): Promise<string> {
+    const raw = await runCliJson<SfOrgDisplayVerboseResult>(
+      `sf org display --target-org ${username} --verbose --json`,
+      this.execFn
+    );
+    if (!raw.sfdxAuthUrl) {
+      throw new Error('CLI nie zwróciło Auth URL dla tej orgi.');
+    }
+    return raw.sfdxAuthUrl;
   }
 
   async loginWeb(alias: string | undefined, instanceUrl: string): Promise<void> {
