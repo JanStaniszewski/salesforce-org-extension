@@ -2,6 +2,16 @@
 
 All notable changes to the "Salesforce Org Manager" extension are documented in this file.
 
+## [0.0.2] - 2026-07-06
+
+### Added
+
+- Extension icon, Marketplace keywords, and a screenshot-illustrated README for the Marketplace listing.
+
+### Changed
+
+- Right-click context menu now shows short action labels (e.g. "Copy Auth URL") instead of repeating "Salesforce Org Manager: " on every item; the full name still appears in the Command Palette.
+
 ## [0.0.1] - 2026-07-06
 
 Initial release.
@@ -15,8 +25,3 @@ Initial release.
 - **Right-click org actions**: Set as Default Org, Open in Browser, Assign to Project/Category, Remove from Category, Logout, and Copy Auth URL.
 - **Refresh Token** inline action for orgs with an expired connection.
 - Automatic check for the Salesforce CLI on activation, with a link to installation instructions if it's missing.
-- Extension icon, Marketplace keywords, and a screenshot-illustrated README for the Marketplace listing.
-
-### Changed
-
-- Right-click context menu now shows short action labels (e.g. "Copy Auth URL") instead of repeating "Salesforce Org Manager: " on every item; the full name still appears in the Command Palette.
