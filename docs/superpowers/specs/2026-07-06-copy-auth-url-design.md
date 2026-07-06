@@ -19,7 +19,7 @@ async getAuthUrl(username: string): Promise<string> {
     `sf org auth show-sfdx-auth-url --target-org ${username} --json`,
     this.execFn
   );
-  if (!raw.sfdxAuthUrl || raw.sfdxAuthUrl.startsWith('[REDACTED]')) {
+  if (!raw.sfdxAuthUrl || !raw.sfdxAuthUrl.startsWith('force://')) {
     throw new Error('CLI nie zwróciło Auth URL dla tej orgi.');
   }
   return raw.sfdxAuthUrl;
@@ -28,7 +28,7 @@ async getAuthUrl(username: string): Promise<string> {
 
 - **Brak cache'owania.** W przeciwieństwie do `getOrgDetails` (cache'owany `Map<string, OrgDetails>`), `getAuthUrl` woła CLI na świeżo przy każdym wywołaniu — sekret nie powinien siedzieć w pamięci `OrgService` dłużej niż to konieczne do jednorazowego skopiowania.
 - `src/cli/sfCli.ts` zyskuje samodzielny (nie dziedziczący z `SfOrgDisplayResult`, bo to inna komenda o innym kształcie) eksportowany typ `SfShowSfdxAuthUrlResult { sfdxAuthUrl?: string }`.
-- Dodatkowa obrona: sprawdzamy też czy wartość nie zaczyna się od `[REDACTED]` — tania asekuracja na wypadek, gdyby ta redakcja kiedyś przeciekła przez inną ścieżkę.
+- Dodatkowa obrona: sprawdzamy pozytywnie, że wartość zaczyna się od `force://` (stabilny format SFDX auth URL), zamiast blokować konkretny tekst redakcji — odporne na to, gdyby przyszła wersja CLI redagowała pole innym komunikatem.
 - `username` pochodzi zawsze z `sf org list --json` (jak w pozostałych metodach `OrgService`) — nie jest wolnym tekstem, więc nie wymaga walidacji jak `alias`/`instanceUrl` w `loginWeb`.
 
 ## Komenda: `sfOrgManager.copyAuthUrl`
