@@ -1,13 +1,22 @@
-import { runCli, runCliJson, ExecFn } from '../cli/cliRunner';
+import { runCli, runCliJson, runCliFileJson, ExecFn, ExecFileFn } from '../cli/cliRunner';
 import { parseOrgList, parseOrgDisplay, SfOrgListResult, SfOrgDisplayResult, SfShowSfdxAuthUrlResult } from '../cli/sfCli';
 import { OrgSummary, OrgDetails } from '../models/org';
 
-const SAFE_ALIAS_PATTERN = /^[A-Za-z0-9_-]+$/;
 const SAFE_INSTANCE_URL_PATTERN = /^https:\/\/[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::\d+)?\/?$/;
+const CONTROL_CHAR_PATTERN = /[\x00-\x1f\x7f]/;
 
 function assertSafeAlias(alias: string): void {
-  if (!SAFE_ALIAS_PATTERN.test(alias)) {
-    throw new Error('Invalid alias — only letters, digits, hyphens, and underscores are allowed.');
+  if (alias.trim() !== alias || alias.length === 0) {
+    throw new Error('Invalid alias — it cannot be empty or have leading/trailing whitespace.');
+  }
+  if (alias.length > 255) {
+    throw new Error('Invalid alias — must be 255 characters or fewer.');
+  }
+  if (alias.startsWith('-')) {
+    throw new Error('Invalid alias — it cannot start with a hyphen.');
+  }
+  if (CONTROL_CHAR_PATTERN.test(alias)) {
+    throw new Error('Invalid alias — control characters are not allowed.');
   }
 }
 
@@ -21,7 +30,10 @@ export class OrgService {
   private orgListCache: OrgSummary[] | undefined;
   private readonly detailsCache = new Map<string, OrgDetails>();
 
-  constructor(private readonly execFn?: ExecFn) {}
+  constructor(
+    private readonly execFn?: ExecFn,
+    private readonly execFileFn?: ExecFileFn
+  ) {}
 
   async listOrgs(forceRefresh = false): Promise<OrgSummary[]> {
     if (!forceRefresh && this.orgListCache) {
@@ -61,8 +73,13 @@ export class OrgService {
       assertSafeAlias(alias);
     }
     assertSafeInstanceUrl(instanceUrl);
-    const aliasFlag = alias ? ` --alias ${alias}` : '';
-    await runCliJson(`sf org login web${aliasFlag} --instance-url ${instanceUrl} --json`, this.execFn);
+    const args = ['org', 'login', 'web', '--instance-url', instanceUrl, '--json'];
+    if (alias) {
+      args.push('--alias', alias);
+    }
+    // Passed via execFile (no shell), so arguments reach the CLI as literal
+    // strings — spaces and punctuation in the alias don't need escaping.
+    await runCliFileJson('sf', args, this.execFileFn);
     this.invalidateOrgList();
   }
 

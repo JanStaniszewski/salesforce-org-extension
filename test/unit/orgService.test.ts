@@ -1,6 +1,12 @@
 import * as assert from 'assert';
 import { OrgService } from '../../src/services/orgService';
-import { ExecFn } from '../../src/cli/cliRunner';
+import { ExecFn, ExecFileFn } from '../../src/cli/cliRunner';
+
+function successExecFileFn(): ExecFileFn {
+  return (_file, _args, _options, callback) => {
+    callback(null, JSON.stringify({ status: 0, result: {} }), '');
+  };
+}
 
 suite('OrgService', () => {
   test('listOrgs parses and caches the org list', async () => {
@@ -80,48 +86,78 @@ suite('OrgService', () => {
   });
 
   test('loginWeb invalidates the org list cache', async () => {
-    const commands: string[] = [];
+    const listCalls: string[] = [];
     const execFn: ExecFn = (command, _options, callback) => {
-      commands.push(command);
+      if (command.startsWith('sf org list')) {
+        listCalls.push(command);
+      }
       callback(null, JSON.stringify({ status: 0, result: {} }), '');
     };
-    const service = new OrgService(execFn);
+    const service = new OrgService(execFn, successExecFileFn());
 
     await service.listOrgs();
     await service.loginWeb('newalias', 'https://login.salesforce.com');
     await service.listOrgs();
 
-    const listCalls = commands.filter((c) => c.startsWith('sf org list')).length;
-    assert.strictEqual(listCalls, 2, 'org list should be re-fetched after loginWeb');
+    assert.strictEqual(listCalls.length, 2, 'org list should be re-fetched after loginWeb');
   });
 
-  test('loginWeb rejects an alias containing shell metacharacters', async () => {
-    const execFn: ExecFn = (_command, _options, callback) => {
+  test('loginWeb passes alias and instance URL as separate argv entries', async () => {
+    let receivedArgs: string[] = [];
+    const execFileFn: ExecFileFn = (file, args, _options, callback) => {
+      receivedArgs = args;
+      assert.strictEqual(file, 'sf');
       callback(null, JSON.stringify({ status: 0, result: {} }), '');
     };
-    const service = new OrgService(execFn);
+    const service = new OrgService(undefined, execFileFn);
 
-    await assert.rejects(() => service.loginWeb('foo; rm -rf ~', 'https://login.salesforce.com'));
+    await service.loginWeb('RMPP CI1', 'https://login.salesforce.com');
+
+    assert.deepStrictEqual(receivedArgs, [
+      'org',
+      'login',
+      'web',
+      '--instance-url',
+      'https://login.salesforce.com',
+      '--json',
+      '--alias',
+      'RMPP CI1',
+    ]);
+  });
+
+  test('loginWeb rejects an alias starting with a hyphen', async () => {
+    const service = new OrgService(undefined, successExecFileFn());
+
+    await assert.rejects(() => service.loginWeb('-alias', 'https://login.salesforce.com'));
+  });
+
+  test('loginWeb rejects an alias containing control characters', async () => {
+    const service = new OrgService(undefined, successExecFileFn());
+
+    await assert.rejects(() => service.loginWeb('foo\nbar', 'https://login.salesforce.com'));
+  });
+
+  test('loginWeb rejects an alias with leading/trailing whitespace', async () => {
+    const service = new OrgService(undefined, successExecFileFn());
+
+    await assert.rejects(() => service.loginWeb('  padded  ', 'https://login.salesforce.com'));
   });
 
   test('loginWeb rejects an instance URL containing shell metacharacters', async () => {
-    const execFn: ExecFn = (_command, _options, callback) => {
-      callback(null, JSON.stringify({ status: 0, result: {} }), '');
-    };
-    const service = new OrgService(execFn);
+    const service = new OrgService(undefined, successExecFileFn());
 
     await assert.rejects(() => service.loginWeb('safealias', 'https://evil.com`rm -rf ~`'));
   });
 
-  test('loginWeb accepts a normal alias and instance URL', async () => {
+  test('loginWeb accepts an alias with spaces since execFile bypasses the shell', async () => {
     let called = false;
-    const execFn: ExecFn = (_command, _options, callback) => {
+    const execFileFn: ExecFileFn = (_file, _args, _options, callback) => {
       called = true;
       callback(null, JSON.stringify({ status: 0, result: {} }), '');
     };
-    const service = new OrgService(execFn);
+    const service = new OrgService(undefined, execFileFn);
 
-    await service.loginWeb('my-alias_1', 'https://mydomain.my.salesforce.com');
+    await service.loginWeb('RMPP CI1', 'https://mydomain.my.salesforce.com');
 
     assert.strictEqual(called, true);
   });

@@ -2,7 +2,13 @@
 
 All notable changes to the "Salesforce Org Manager" extension are documented in this file.
 
-## [0.0.2] - 2026-07-06
+## [0.0.3] - 2026-07-07
+
+### Fixed
+
+- Authorizing an org with an alias containing spaces (e.g. "RMPP CI1") no longer fails with "Invalid alias". The alias is now passed directly to the CLI process instead of through a shell command string, so spaces and punctuation no longer need to be rejected to prevent command injection.
+
+## [0.0.2] - 2026-07-07
 
 ### Added
 

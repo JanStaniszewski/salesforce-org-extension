@@ -1,7 +1,14 @@
-import { exec as nodeExec, ExecException } from 'child_process';
+import { exec as nodeExec, execFile as nodeExecFile, ExecException } from 'child_process';
 
 export type ExecFn = (
   command: string,
+  options: { maxBuffer: number },
+  callback: (error: ExecException | null, stdout: string, stderr: string) => void
+) => void;
+
+export type ExecFileFn = (
+  file: string,
+  args: string[],
   options: { maxBuffer: number },
   callback: (error: ExecException | null, stdout: string, stderr: string) => void
 ) => void;
@@ -36,6 +43,29 @@ interface SfJsonEnvelope<T> {
 export function runCliJson<T>(command: string, execFn: ExecFn = nodeExec as ExecFn): Promise<T> {
   return new Promise((resolve, reject) => {
     execFn(command, { maxBuffer: MAX_BUFFER }, (error, stdout, stderr) => {
+      let parsed: SfJsonEnvelope<T>;
+      try {
+        parsed = JSON.parse(stdout);
+      } catch {
+        reject(new CliError(stderr || error?.message || 'Failed to parse CLI response'));
+        return;
+      }
+      if (parsed.status !== 0) {
+        reject(new CliError(parsed.message || 'CLI command failed', parsed));
+        return;
+      }
+      resolve(parsed.result as T);
+    });
+  });
+}
+
+export function runCliFileJson<T>(
+  file: string,
+  args: string[],
+  execFileFn: ExecFileFn = nodeExecFile as unknown as ExecFileFn
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    execFileFn(file, args, { maxBuffer: MAX_BUFFER }, (error, stdout, stderr) => {
       let parsed: SfJsonEnvelope<T>;
       try {
         parsed = JSON.parse(stdout);
