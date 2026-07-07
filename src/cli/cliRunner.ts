@@ -9,7 +9,7 @@ export type ExecFn = (
 export type ExecFileFn = (
   file: string,
   args: string[],
-  options: { maxBuffer: number },
+  options: { maxBuffer: number; signal?: AbortSignal },
   callback: (error: ExecException | null, stdout: string, stderr: string) => void
 ) => void;
 
@@ -62,10 +62,11 @@ export function runCliJson<T>(command: string, execFn: ExecFn = nodeExec as Exec
 export function runCliFileJson<T>(
   file: string,
   args: string[],
-  execFileFn: ExecFileFn = nodeExecFile as unknown as ExecFileFn
+  execFileFn: ExecFileFn = nodeExecFile as unknown as ExecFileFn,
+  signal?: AbortSignal
 ): Promise<T> {
   return new Promise((resolve, reject) => {
-    execFileFn(file, args, { maxBuffer: MAX_BUFFER }, (error, stdout, stderr) => {
+    execFileFn(file, args, { maxBuffer: MAX_BUFFER, signal }, (error, stdout, stderr) => {
       let parsed: SfJsonEnvelope<T>;
       try {
         parsed = JSON.parse(stdout);

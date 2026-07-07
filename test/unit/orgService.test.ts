@@ -125,6 +125,20 @@ suite('OrgService', () => {
     ]);
   });
 
+  test('loginWeb forwards the abort signal to execFile', async () => {
+    let receivedSignal: AbortSignal | undefined;
+    const execFileFn: ExecFileFn = (_file, _args, options, callback) => {
+      receivedSignal = options.signal;
+      callback(null, JSON.stringify({ status: 0, result: {} }), '');
+    };
+    const service = new OrgService(undefined, execFileFn);
+    const controller = new AbortController();
+
+    await service.loginWeb('safealias', 'https://login.salesforce.com', controller.signal);
+
+    assert.strictEqual(receivedSignal, controller.signal);
+  });
+
   test('loginWeb rejects an alias starting with a hyphen', async () => {
     const service = new OrgService(undefined, successExecFileFn());
 

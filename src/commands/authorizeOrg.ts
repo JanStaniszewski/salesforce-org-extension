@@ -42,15 +42,21 @@ export function registerAuthorizeOrgCommand(
       {
         location: vscode.ProgressLocation.Notification,
         title: 'Waiting for browser authorization...',
-        cancellable: false,
+        cancellable: true,
       },
-      async () => {
+      async (_progress, token) => {
+        const controller = new AbortController();
+        const cancelListener = token.onCancellationRequested(() => controller.abort());
         try {
-          await orgService.loginWeb(alias || undefined, instanceUrl);
+          await orgService.loginWeb(alias || undefined, instanceUrl, controller.signal);
           treeProvider.refresh();
           void vscode.window.showInformationMessage(`Org${alias ? ` "${alias}"` : ''} authorized successfully.`);
         } catch (error) {
-          void vscode.window.showErrorMessage(`Authorization failed: ${(error as Error).message}`);
+          if (!token.isCancellationRequested) {
+            void vscode.window.showErrorMessage(`Authorization failed: ${(error as Error).message}`);
+          }
+        } finally {
+          cancelListener.dispose();
         }
       }
     );

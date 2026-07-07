@@ -68,7 +68,7 @@ export class OrgService {
     return raw.sfdxAuthUrl;
   }
 
-  async loginWeb(alias: string | undefined, instanceUrl: string): Promise<void> {
+  async loginWeb(alias: string | undefined, instanceUrl: string, signal?: AbortSignal): Promise<void> {
     if (alias) {
       assertSafeAlias(alias);
     }
@@ -79,7 +79,7 @@ export class OrgService {
     }
     // Passed via execFile (no shell), so arguments reach the CLI as literal
     // strings — spaces and punctuation in the alias don't need escaping.
-    await runCliFileJson('sf', args, this.execFileFn);
+    await runCliFileJson('sf', args, this.execFileFn, signal);
     this.invalidateOrgList();
   }
 

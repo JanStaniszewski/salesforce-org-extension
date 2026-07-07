@@ -4,6 +4,10 @@ All notable changes to the "Salesforce Org Manager" extension are documented in 
 
 ## [0.0.3] - 2026-07-07
 
+### Added
+
+- The "Waiting for browser authorization..." notification can now be cancelled, which aborts the underlying `sf org login web` process instead of leaving it running in the background.
+
 ### Fixed
 
 - Authorizing an org with an alias containing spaces (e.g. "RMPP CI1") no longer fails with "Invalid alias". The alias is now passed directly to the CLI process instead of through a shell command string, so spaces and punctuation no longer need to be rejected to prevent command injection.
