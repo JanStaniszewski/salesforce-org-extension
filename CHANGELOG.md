@@ -15,6 +15,7 @@ All notable changes to the "Salesforce Org Manager" extension are documented in 
 - Authorizing an org with an alias containing spaces (e.g. "RMPP CI1") no longer fails with "Invalid alias". The alias is now passed directly to the CLI process instead of through a shell command string, so spaces and punctuation no longer need to be rejected to prevent command injection.
 - Orgs whose connection is broken now reliably show the **Refresh Token** action. The CLI reports broken connections with descriptive messages (e.g. "Unable to refresh session due to: ... expired access/refresh token") rather than a fixed set of status codes, so any non-connected org is now treated as needing re-authentication instead of only literal "Expired"/"RefreshTokenAuthError" values.
 - **Set as Default** and **Open in Browser** no longer appear (inline or in the right-click menu) for orgs that need re-authentication, since both actions require a live connection and would just fail. Only **Refresh Token** shows for those orgs.
+- Cancelling "Authorize New Org" / "Refresh Token" no longer leaves an orphaned `sf` process holding the local OAuth callback port open, which previously made every subsequent authorization attempt fail with "Cannot start the OAuth redirect server on port 1717." `sf` launches its real CLI process as a child of a wrapper script, so killing only the wrapper (the previous behavior) left that child running; CLI processes are now spawned in their own process group so cancelling kills the whole group.
 
 ## [0.0.2] - 2026-07-07
 
