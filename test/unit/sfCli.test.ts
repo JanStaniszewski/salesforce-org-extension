@@ -57,6 +57,25 @@ suite('sfCli parsing', () => {
     assert.deepStrictEqual(parseOrgList({}), []);
   });
 
+  test('parseOrgList classifies a descriptive refresh-token error message as Expired', () => {
+    const raw = {
+      nonScratchOrgs: [
+        {
+          username: 'broken@example.com',
+          connectedStatus:
+            'Unable to refresh session due to: Error authenticating with the refresh token due to: expired access/refresh token',
+          isDevHub: false,
+          isSandbox: false,
+          isDefaultUsername: false,
+        },
+      ],
+    };
+
+    const orgs = parseOrgList(raw);
+
+    assert.strictEqual(orgs[0].status, ConnectionStatus.Expired);
+  });
+
   test('parseOrgDisplay maps raw fields to OrgDetails', () => {
     const details = parseOrgDisplay({
       id: '00Dxx0000000000EAA',

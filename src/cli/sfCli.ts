@@ -35,13 +35,15 @@ export interface SfShowSfdxAuthUrlResult {
 }
 
 function classifyStatus(raw: string): ConnectionStatus {
+  // The CLI's real-world connectedStatus values go well beyond 'Expired' /
+  // 'RefreshTokenAuthError' — e.g. "Unable to refresh session due to: Error
+  // authenticating with the refresh token due to: expired access/refresh
+  // token". Any non-connected status means the same remedy applies: re-auth
+  // via the Refresh Token action.
   if (raw === 'Connected' || raw === 'Active') {
     return ConnectionStatus.Connected;
   }
-  if (raw === 'Expired' || raw === 'RefreshTokenAuthError') {
-    return ConnectionStatus.Expired;
-  }
-  return ConnectionStatus.Error;
+  return ConnectionStatus.Expired;
 }
 
 export function parseOrgList(raw: SfOrgListResult): OrgSummary[] {

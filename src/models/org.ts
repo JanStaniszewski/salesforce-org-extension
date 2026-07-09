@@ -8,7 +8,6 @@ export enum OrgType {
 export enum ConnectionStatus {
   Connected = 'Connected',
   Expired = 'Expired',
-  Error = 'Error',
 }
 
 export interface OrgSummary {
