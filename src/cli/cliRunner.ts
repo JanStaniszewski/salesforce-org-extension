@@ -2,7 +2,7 @@ import { exec as nodeExec, execFile as nodeExecFile, ExecException } from 'child
 
 export type ExecFn = (
   command: string,
-  options: { maxBuffer: number },
+  options: { maxBuffer: number; signal?: AbortSignal },
   callback: (error: ExecException | null, stdout: string, stderr: string) => void
 ) => void;
 
@@ -22,9 +22,9 @@ export class CliError extends Error {
 
 const MAX_BUFFER = 10 * 1024 * 1024;
 
-export function runCli(command: string, execFn: ExecFn = nodeExec as ExecFn): Promise<string> {
+export function runCli(command: string, execFn: ExecFn = nodeExec as ExecFn, signal?: AbortSignal): Promise<string> {
   return new Promise((resolve, reject) => {
-    execFn(command, { maxBuffer: MAX_BUFFER }, (error, stdout, stderr) => {
+    execFn(command, { maxBuffer: MAX_BUFFER, signal }, (error, stdout, stderr) => {
       if (error) {
         reject(new CliError(stderr || error.message));
         return;
@@ -40,9 +40,9 @@ interface SfJsonEnvelope<T> {
   message?: string;
 }
 
-export function runCliJson<T>(command: string, execFn: ExecFn = nodeExec as ExecFn): Promise<T> {
+export function runCliJson<T>(command: string, execFn: ExecFn = nodeExec as ExecFn, signal?: AbortSignal): Promise<T> {
   return new Promise((resolve, reject) => {
-    execFn(command, { maxBuffer: MAX_BUFFER }, (error, stdout, stderr) => {
+    execFn(command, { maxBuffer: MAX_BUFFER, signal }, (error, stdout, stderr) => {
       let parsed: SfJsonEnvelope<T>;
       try {
         parsed = JSON.parse(stdout);

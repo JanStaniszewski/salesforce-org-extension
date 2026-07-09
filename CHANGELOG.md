@@ -7,6 +7,8 @@ All notable changes to the "Salesforce Org Manager" extension are documented in 
 ### Added
 
 - The "Waiting for browser authorization..." notification can now be cancelled, which aborts the underlying `sf org login web` process instead of leaving it running in the background.
+- Every org action (Set as Default, Open in Browser, Logout, Refresh Token, Copy Auth URL) now shows a progress notification with a **Cancel** button that stops the underlying CLI process, instead of running with no feedback and no way to back out.
+- Success notifications are now prefixed with ✅ and failure notifications with ❌, so successes and failures are distinguishable at a glance.
 
 ### Fixed
 

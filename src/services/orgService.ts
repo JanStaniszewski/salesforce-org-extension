@@ -57,10 +57,11 @@ export class OrgService {
     return details;
   }
 
-  async getAuthUrl(username: string): Promise<string> {
+  async getAuthUrl(username: string, signal?: AbortSignal): Promise<string> {
     const raw = await runCliJson<SfShowSfdxAuthUrlResult>(
       `sf org auth show-sfdx-auth-url --target-org ${username} --json`,
-      this.execFn
+      this.execFn,
+      signal
     );
     if (!raw.sfdxAuthUrl || !raw.sfdxAuthUrl.startsWith('force://')) {
       throw new Error('The CLI did not return an Auth URL for this org.');
@@ -83,19 +84,19 @@ export class OrgService {
     this.invalidateOrgList();
   }
 
-  async logout(username: string): Promise<void> {
-    await runCli(`sf org logout --target-org ${username} --no-prompt`, this.execFn);
+  async logout(username: string, signal?: AbortSignal): Promise<void> {
+    await runCli(`sf org logout --target-org ${username} --no-prompt`, this.execFn, signal);
     this.invalidateOrgList();
     this.detailsCache.delete(username);
   }
 
-  async setDefault(username: string): Promise<void> {
-    await runCli(`sf config set target-org=${username} --global`, this.execFn);
+  async setDefault(username: string, signal?: AbortSignal): Promise<void> {
+    await runCli(`sf config set target-org=${username} --global`, this.execFn, signal);
     this.invalidateOrgList();
   }
 
-  async openInBrowser(username: string): Promise<void> {
-    await runCli(`sf org open --target-org ${username}`, this.execFn);
+  async openInBrowser(username: string, signal?: AbortSignal): Promise<void> {
+    await runCli(`sf org open --target-org ${username}`, this.execFn, signal);
   }
 
   invalidateOrgList(): void {
