@@ -71,10 +71,11 @@
       "view/item/context": [
         { "command": "sfOrgManager.setDefault", "when": "view == sfOrgManagerView && viewItem == org" },
         { "command": "sfOrgManager.openInBrowser", "when": "view == sfOrgManagerView && viewItem == org" },
-        { "command": "sfOrgManager.assignCategory", "when": "view == sfOrgManagerView && viewItem == org" },
-        { "command": "sfOrgManager.removeCategory", "when": "view == sfOrgManagerView && viewItem == org" },
-        { "command": "sfOrgManager.logout", "when": "view == sfOrgManagerView && viewItem == org" },
-        { "command": "sfOrgManager.copyAuthUrl", "when": "view == sfOrgManagerView && viewItem == org" }
+        { "command": "sfOrgManager.refreshToken", "when": "view == sfOrgManagerView && viewItem == orgExpired" },
+        { "command": "sfOrgManager.assignCategory", "when": "view == sfOrgManagerView && (viewItem == org || viewItem == orgExpired)" },
+        { "command": "sfOrgManager.removeCategory", "when": "view == sfOrgManagerView && (viewItem == org || viewItem == orgExpired)" },
+        { "command": "sfOrgManager.logout", "when": "view == sfOrgManagerView && (viewItem == org || viewItem == orgExpired)" },
+        { "command": "sfOrgManager.copyAuthUrl", "when": "view == sfOrgManagerView && (viewItem == org || viewItem == orgExpired)" }
       ]
     }
   },

@@ -81,9 +81,10 @@ export class OrgTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     if (details.expirationDate) {
       items.push(new OrgDetailItem('Expires', details.expirationDate));
     }
-    items.push(new OrgActionItem('Set as Default', 'arrow-swap', 'sfOrgManager.setDefault', org));
-    items.push(new OrgActionItem('Open in Browser', 'link-external', 'sfOrgManager.openInBrowser', org));
-    if (org.status === ConnectionStatus.Expired) {
+    if (org.status === ConnectionStatus.Connected) {
+      items.push(new OrgActionItem('Set as Default', 'arrow-swap', 'sfOrgManager.setDefault', org));
+      items.push(new OrgActionItem('Open in Browser', 'link-external', 'sfOrgManager.openInBrowser', org));
+    } else {
       items.push(new OrgActionItem('Refresh Token', 'refresh', 'sfOrgManager.refreshToken', org));
     }
     return items;
