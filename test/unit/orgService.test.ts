@@ -1,4 +1,7 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { OrgService } from '../../src/services/orgService';
 import { ExecFn, ExecFileFn } from '../../src/cli/cliRunner';
 
@@ -276,5 +279,78 @@ suite('OrgService', () => {
     await service.getAuthUrl('user@example.com');
 
     assert.strictEqual(callCount, 2, 'getAuthUrl should never cache — it should call the CLI every time');
+  });
+
+  suite('setDefault', () => {
+    let tempDir: string;
+
+    setup(() => {
+      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sf-org-manager-'));
+    });
+
+    teardown(() => {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    });
+
+    test('sets only the global config when the workspace has no sfdx project', async () => {
+      const commands: string[] = [];
+      const execFn: ExecFn = (command, _options, callback) => {
+        commands.push(command);
+        callback(null, JSON.stringify({ status: 0, result: {} }), '');
+      };
+      const service = new OrgService(execFn, undefined, tempDir);
+
+      await service.setDefault('user@example.com');
+
+      assert.deepStrictEqual(commands, ['sf config set target-org=user@example.com --global']);
+    });
+
+    test('also sets the local config when the workspace is an sfdx project, since local overrides global', async () => {
+      fs.writeFileSync(path.join(tempDir, 'sfdx-project.json'), '{}');
+      const commands: string[] = [];
+      const execFn: ExecFn = (command, _options, callback) => {
+        commands.push(command);
+        callback(null, JSON.stringify({ status: 0, result: {} }), '');
+      };
+      const service = new OrgService(execFn, undefined, tempDir);
+
+      await service.setDefault('user@example.com');
+
+      assert.deepStrictEqual(commands, [
+        'sf config set target-org=user@example.com',
+        'sf config set target-org=user@example.com --global',
+      ]);
+    });
+
+    test('runs both config set calls in the workspace cwd', async () => {
+      fs.writeFileSync(path.join(tempDir, 'sfdx-project.json'), '{}');
+      const receivedCwds: (string | undefined)[] = [];
+      const execFn: ExecFn = (_command, options, callback) => {
+        receivedCwds.push(options.cwd);
+        callback(null, JSON.stringify({ status: 0, result: {} }), '');
+      };
+      const service = new OrgService(execFn, undefined, tempDir);
+
+      await service.setDefault('user@example.com');
+
+      assert.deepStrictEqual(receivedCwds, [tempDir, tempDir]);
+    });
+
+    test('invalidates the org list cache', async () => {
+      const listCalls: string[] = [];
+      const execFn: ExecFn = (command, _options, callback) => {
+        if (command.startsWith('sf org list')) {
+          listCalls.push(command);
+        }
+        callback(null, JSON.stringify({ status: 0, result: {} }), '');
+      };
+      const service = new OrgService(execFn, undefined, tempDir);
+
+      await service.listOrgs();
+      await service.setDefault('user@example.com');
+      await service.listOrgs();
+
+      assert.strictEqual(listCalls.length, 2, 'org list should be re-fetched after setDefault');
+    });
   });
 });

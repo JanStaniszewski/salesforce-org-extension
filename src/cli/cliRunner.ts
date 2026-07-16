@@ -2,14 +2,14 @@ import { spawn, ChildProcess, ExecException } from 'child_process';
 
 export type ExecFn = (
   command: string,
-  options: { maxBuffer: number; signal?: AbortSignal },
+  options: { maxBuffer: number; signal?: AbortSignal; cwd?: string },
   callback: (error: ExecException | null, stdout: string, stderr: string) => void
 ) => void;
 
 export type ExecFileFn = (
   file: string,
   args: string[],
-  options: { maxBuffer: number; signal?: AbortSignal },
+  options: { maxBuffer: number; signal?: AbortSignal; cwd?: string },
   callback: (error: ExecException | null, stdout: string, stderr: string) => void
 ) => void;
 
@@ -100,18 +100,23 @@ function collectChildOutput(
 }
 
 const defaultExecFn: ExecFn = (command, options, callback) => {
-  const child = spawn(command, { shell: true, detached: process.platform !== 'win32' });
+  const child = spawn(command, { shell: true, detached: process.platform !== 'win32', cwd: options.cwd });
   collectChildOutput(child, command, options.signal, callback);
 };
 
 const defaultExecFileFn: ExecFileFn = (file, args, options, callback) => {
-  const child = spawn(file, args, { detached: process.platform !== 'win32' });
+  const child = spawn(file, args, { detached: process.platform !== 'win32', cwd: options.cwd });
   collectChildOutput(child, file, options.signal, callback);
 };
 
-export function runCli(command: string, execFn: ExecFn = defaultExecFn, signal?: AbortSignal): Promise<string> {
+export function runCli(
+  command: string,
+  execFn: ExecFn = defaultExecFn,
+  signal?: AbortSignal,
+  cwd?: string
+): Promise<string> {
   return new Promise((resolve, reject) => {
-    execFn(command, { maxBuffer: MAX_BUFFER, signal }, (error, stdout, stderr) => {
+    execFn(command, { maxBuffer: MAX_BUFFER, signal, cwd }, (error, stdout, stderr) => {
       if (error) {
         reject(new CliError(stderr || error.message));
         return;
@@ -127,9 +132,14 @@ interface SfJsonEnvelope<T> {
   message?: string;
 }
 
-export function runCliJson<T>(command: string, execFn: ExecFn = defaultExecFn, signal?: AbortSignal): Promise<T> {
+export function runCliJson<T>(
+  command: string,
+  execFn: ExecFn = defaultExecFn,
+  signal?: AbortSignal,
+  cwd?: string
+): Promise<T> {
   return new Promise((resolve, reject) => {
-    execFn(command, { maxBuffer: MAX_BUFFER, signal }, (error, stdout, stderr) => {
+    execFn(command, { maxBuffer: MAX_BUFFER, signal, cwd }, (error, stdout, stderr) => {
       let parsed: SfJsonEnvelope<T>;
       try {
         parsed = JSON.parse(stdout);
@@ -150,10 +160,11 @@ export function runCliFileJson<T>(
   file: string,
   args: string[],
   execFileFn: ExecFileFn = defaultExecFileFn,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  cwd?: string
 ): Promise<T> {
   return new Promise((resolve, reject) => {
-    execFileFn(file, args, { maxBuffer: MAX_BUFFER, signal }, (error, stdout, stderr) => {
+    execFileFn(file, args, { maxBuffer: MAX_BUFFER, signal, cwd }, (error, stdout, stderr) => {
       let parsed: SfJsonEnvelope<T>;
       try {
         parsed = JSON.parse(stdout);

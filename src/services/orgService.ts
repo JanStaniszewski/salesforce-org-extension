@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { runCli, runCliJson, runCliFileJson, ExecFn, ExecFileFn } from '../cli/cliRunner';
 import { parseOrgList, parseOrgDisplay, SfOrgListResult, SfOrgDisplayResult, SfShowSfdxAuthUrlResult } from '../cli/sfCli';
 import { OrgSummary, OrgDetails } from '../models/org';
@@ -32,14 +34,15 @@ export class OrgService {
 
   constructor(
     private readonly execFn?: ExecFn,
-    private readonly execFileFn?: ExecFileFn
+    private readonly execFileFn?: ExecFileFn,
+    private readonly cwd?: string
   ) {}
 
   async listOrgs(forceRefresh = false): Promise<OrgSummary[]> {
     if (!forceRefresh && this.orgListCache) {
       return this.orgListCache;
     }
-    const raw = await runCliJson<SfOrgListResult>('sf org list --json', this.execFn);
+    const raw = await runCliJson<SfOrgListResult>('sf org list --json', this.execFn, undefined, this.cwd);
     this.orgListCache = parseOrgList(raw);
     return this.orgListCache;
   }
@@ -50,7 +53,9 @@ export class OrgService {
     }
     const raw = await runCliJson<SfOrgDisplayResult>(
       `sf org display --target-org ${username} --json`,
-      this.execFn
+      this.execFn,
+      undefined,
+      this.cwd
     );
     const details = parseOrgDisplay(raw);
     this.detailsCache.set(username, details);
@@ -61,7 +66,8 @@ export class OrgService {
     const raw = await runCliJson<SfShowSfdxAuthUrlResult>(
       `sf org auth show-sfdx-auth-url --target-org ${username} --json`,
       this.execFn,
-      signal
+      signal,
+      this.cwd
     );
     if (!raw.sfdxAuthUrl || !raw.sfdxAuthUrl.startsWith('force://')) {
       throw new Error('The CLI did not return an Auth URL for this org.');
@@ -80,23 +86,31 @@ export class OrgService {
     }
     // Passed via execFile (no shell), so arguments reach the CLI as literal
     // strings — spaces and punctuation in the alias don't need escaping.
-    await runCliFileJson('sf', args, this.execFileFn, signal);
+    await runCliFileJson('sf', args, this.execFileFn, signal, this.cwd);
     this.invalidateOrgList();
   }
 
   async logout(username: string, signal?: AbortSignal): Promise<void> {
-    await runCli(`sf org logout --target-org ${username} --no-prompt`, this.execFn, signal);
+    await runCli(`sf org logout --target-org ${username} --no-prompt`, this.execFn, signal, this.cwd);
     this.invalidateOrgList();
     this.detailsCache.delete(username);
   }
 
   async setDefault(username: string, signal?: AbortSignal): Promise<void> {
-    await runCli(`sf config set target-org=${username} --global`, this.execFn, signal);
+    // `sf config set target-org` resolves local (project) config before global
+    // config, so writing --global only is a no-op whenever the open project
+    // already has a local target-org set — the CLI (and this extension's own
+    // `sf org list`) keeps reporting the old org as default. Set the local
+    // value too when we're inside a project, since that's the one that wins.
+    if (this.cwd && fs.existsSync(path.join(this.cwd, 'sfdx-project.json'))) {
+      await runCli(`sf config set target-org=${username}`, this.execFn, signal, this.cwd);
+    }
+    await runCli(`sf config set target-org=${username} --global`, this.execFn, signal, this.cwd);
     this.invalidateOrgList();
   }
 
   async openInBrowser(username: string, signal?: AbortSignal): Promise<void> {
-    await runCli(`sf org open --target-org ${username}`, this.execFn, signal);
+    await runCli(`sf org open --target-org ${username}`, this.execFn, signal, this.cwd);
   }
 
   invalidateOrgList(): void {

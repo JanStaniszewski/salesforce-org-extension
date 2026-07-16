@@ -24,7 +24,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     return;
   }
 
-  const orgService = new OrgService();
+  const orgService = new OrgService(undefined, undefined, vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   const categoryService = new CategoryService();
   const treeProvider = new OrgTreeProvider(orgService, categoryService);
 
