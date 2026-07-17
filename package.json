@@ -2,7 +2,7 @@
   "name": "sf-org-manager",
   "displayName": "Salesforce Org Manager",
   "description": "Manage your authorized Salesforce orgs from a dedicated VS Code Activity Bar view",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "JanStaniszewski",
   "license": "MIT",
   "private": true,

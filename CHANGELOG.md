@@ -2,6 +2,12 @@
 
 All notable changes to the "Salesforce Org Manager" extension are documented in this file.
 
+## [0.0.4] - 2026-07-17
+
+### Changed
+
+- The default org (`sf config set target-org`) is now marked with a ⭐ star icon instead of the regular status dot, so it's easy to spot at a glance instead of relying on the small "(default)" text next to its username.
+
 ## [0.0.3] - 2026-07-07
 
 ### Added

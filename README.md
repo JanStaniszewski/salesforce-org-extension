@@ -15,7 +15,7 @@ Every org you've authorized via `sf org login web` shows up automatically, group
 - 🌱 **Scratch Orgs**
 - 🚀 **Production / Other**
 
-A status dot next to each org shows at a glance whether it's connected 🟢 or needs re-authentication 🔴.
+A status dot next to each org shows at a glance whether it's connected 🟢 or needs re-authentication 🔴. Your current default org (`sf config set target-org`) is marked with a ⭐ instead of a dot, so it stands out in the list.
 
 ![Tree view grouped by type, showing connected (green) and expired (red) status dots](resources/screenshots/status-dots.png)
 
