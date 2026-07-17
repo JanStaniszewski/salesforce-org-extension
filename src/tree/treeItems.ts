@@ -15,8 +15,16 @@ export class OrgItem extends vscode.TreeItem {
     this.description = `${org.username}${org.isDefault ? ' (default)' : ''}`;
     this.contextValue = org.status === ConnectionStatus.Connected ? 'org' : 'orgExpired';
     this.iconPath = new vscode.ThemeIcon(
-      org.status === ConnectionStatus.Connected ? 'circle-filled' : 'warning',
-      new vscode.ThemeColor(org.status === ConnectionStatus.Connected ? 'charts.green' : 'charts.red')
+      org.isDefault ? 'star-full' : org.status === ConnectionStatus.Connected ? 'circle-filled' : 'warning',
+      new vscode.ThemeColor(
+        org.isDefault
+          ? org.status === ConnectionStatus.Connected
+            ? 'charts.yellow'
+            : 'charts.red'
+          : org.status === ConnectionStatus.Connected
+          ? 'charts.green'
+          : 'charts.red'
+      )
     );
   }
 }
